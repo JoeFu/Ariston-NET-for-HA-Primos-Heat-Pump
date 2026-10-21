@@ -5,21 +5,21 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
   release:
-    name: Prepare release
+    name: Attach integration zip
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.0.0
-      - name: Zip Release
-        uses: TheDoctor0/zip-release@0.7.1
-        with:
-          filename: ariston-net-ha-primos-heat-pump.zip
-          directory: custom_components/ariston
-      - name: Upload to Release Action
-        uses: Shopify/upload-to-release@v1.0.1
-        with:
-          name: ariston-net-ha-primos-heat-pump.zip
-          path: custom_components/ariston/ariston-net-ha-primos-heat-pump.zip
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/checkout@v4
+      - name: Zip the integration
+        run: |
+          cd custom_components/ariston
+          zip -r "${GITHUB_WORKSPACE}/ariston-net-ha-primos-heat-pump.zip" . -x '__pycache__/*' '*/__pycache__/*' '*.pyc'
+      - name: Upload to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" ariston-net-ha-primos-heat-pump.zip --clobber
