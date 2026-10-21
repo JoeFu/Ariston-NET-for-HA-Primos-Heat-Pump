@@ -156,5 +156,4 @@ class AristonSelect(AristonEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
-        await self.entity_description.select_option_fn(self, option)
-        self.notify_state_written()
+        await self.async_write(lambda: self.entity_description.select_option_fn(self, option))

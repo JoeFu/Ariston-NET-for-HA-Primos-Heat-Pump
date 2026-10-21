@@ -89,5 +89,5 @@ class AristonTime(AristonEntity, TimeEntity):
 
     async def async_set_value(self, value: time) -> None:
         """Write a new time."""
-        await self.entity_description.set_minutes_fn(self, value.hour * 60 + value.minute)
-        self.notify_state_written()
+        minutes = value.hour * 60 + value.minute
+        await self.async_write(lambda: self.entity_description.set_minutes_fn(self, minutes))

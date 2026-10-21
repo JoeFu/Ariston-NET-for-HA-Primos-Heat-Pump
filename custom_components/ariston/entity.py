@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Iterable
+from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass
 from typing import Any
 
@@ -13,7 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity, EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONFIGURATION_URL, COORDINATOR, DOMAIN, MANUFACTURER
+from .const import ATTR_PENDING_COMMAND, CONFIGURATION_URL, COORDINATOR, DOMAIN, MANUFACTURER
 from .coordinator import AristonConfigEntry, AristonCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -124,23 +124,26 @@ class AristonEntity(CoordinatorEntity[AristonCoordinator]):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
-        """Return the extra attributes declared on the description."""
-        if not self.entity_description.extra_attributes:
-            return None
-        attributes = {}
-        for name, getter in self.entity_description.extra_attributes.items():
+        """Return the declared extra attributes plus the pending-command flag."""
+        attributes: dict[str, Any] = {}
+        for name, getter in (self.entity_description.extra_attributes or {}).items():
             value = getter(self)
             if value is not None:
                 attributes[name] = value
+        if self.coordinator.has_pending_write(self.entity_id):
+            attributes[ATTR_PENDING_COMMAND] = True
         return attributes or None
 
-    def notify_state_written(self) -> None:
-        """Push the device's (optimistically updated) state to every entity.
+    async def async_write(self, action: Callable[[], Awaitable[Any]], label: str = "") -> None:
+        """Send a command to the cloud through the coordinator.
 
-        The ariston library updates its local copy of the data after a successful
-        write, so all entities of this coordinator can refresh without a cloud call.
+        The coordinator applies a timeout, turns cloud errors into readable
+        HomeAssistantErrors, refreshes every entity with the value the library cached,
+        polls again soon and keeps that value until the cloud confirms it.
         """
-        self.coordinator.async_update_listeners()
+        await self.coordinator.async_execute_write(
+            action, entity_id=self.entity_id, label=label or self.entity_id or ""
+        )
 
 
 def build_entities[D: AristonEntityDescription](

@@ -275,8 +275,21 @@ class AristonWaterHeater(AristonEntity, WaterHeaterEntity):
                 clamped,
             )
         _LOGGER.debug("Setting water temperature to %s for %s", clamped, self.entity_id)
-        await self.device.async_set_water_heater_temperature(clamped)
-        self.notify_state_written()
+        await self.async_write(lambda: self._async_write_temperature(clamped), "set_temperature")
+
+    async def _async_write_temperature(self, temperature: float) -> None:
+        await self.device.async_set_water_heater_temperature(temperature)
+        self._apply_temperature_locally(temperature)
+
+    def _apply_temperature_locally(self, temperature: float) -> None:
+        """Mirror a successful temperature write into the cached data.
+
+        ariston 0.19.9 stores the new Nuos Split target under ``procReqTemp`` while the
+        target is read from ``comfortTemp``; without this the dial would jump back to the
+        old target until the next poll.
+        """
+        if self.device.whe_type is WheType.NuosSplit:
+            self.device.data[NuosSplitProperties.COMFORT_TEMP] = temperature
 
     async def async_set_operation_mode(self, operation_mode: str) -> None:
         """Set the operation mode; "off" switches the heater off, any other mode switches it on."""
@@ -292,10 +305,11 @@ class AristonWaterHeater(AristonEntity, WaterHeaterEntity):
             ),
             operation_mode,
         )
-        operation_mode = mode_text
+        await self.async_write(lambda: self._async_write_mode(mode_text), "set_operation_mode")
 
+    async def _async_write_mode(self, mode_text: str) -> None:
         # Bring the target into the new mode's range before the appliance applies it.
-        low, high = self.limits_for_mode(operation_mode)
+        low, high = self.limits_for_mode(mode_text)
         target = _as_float(self.target_temperature)
         if target is not None:
             adjusted = target
@@ -309,15 +323,14 @@ class AristonWaterHeater(AristonEntity, WaterHeaterEntity):
                     self.entity_id,
                     target,
                     adjusted,
-                    operation_mode,
+                    mode_text,
                 )
-                await self.device.async_set_water_heater_temperature(adjusted)
+                await self._async_write_temperature(adjusted)
 
         if self._is_powered_off:
             await self.device.async_set_power(True)
-        await self.device.async_set_water_heater_operation_mode(operation_mode)
-        self._apply_mode_locally(operation_mode)
-        self.notify_state_written()
+        await self.device.async_set_water_heater_operation_mode(mode_text)
+        self._apply_mode_locally(mode_text)
 
     def _apply_mode_locally(self, operation_mode: str) -> None:
         """Mirror a successful mode write into the cached data.
@@ -336,10 +349,8 @@ class AristonWaterHeater(AristonEntity, WaterHeaterEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the water heater on."""
-        await self.device.async_set_power(True)
-        self.notify_state_written()
+        await self.async_write(lambda: self.device.async_set_power(True), "turn_on")
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the water heater off."""
-        await self.device.async_set_power(False)
-        self.notify_state_written()
+        await self.async_write(lambda: self.device.async_set_power(False), "turn_off")

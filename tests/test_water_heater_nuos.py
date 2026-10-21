@@ -233,6 +233,28 @@ async def test_green_ceiling_follows_the_cloud_setting(
     assert hass.states.get(WH).attributes["temperature_limits"]["green"] == [40.0, 55.0]
 
 
+async def test_target_temperature_updates_immediately(
+    hass: HomeAssistant, nuos_api: MagicMock, nuos_entry
+) -> None:
+    """The dial shows the new target right away instead of jumping back until the next poll."""
+    await hass.services.async_call(
+        "water_heater",
+        "set_operation_mode",
+        {"entity_id": WH, "operation_mode": "comfort"},
+        blocking=True,
+    )
+    await hass.services.async_call(
+        "water_heater", "set_temperature", {"entity_id": WH, "temperature": 58}, blocking=True
+    )
+    state = hass.states.get(WH)
+    assert state.attributes["temperature"] == 58
+    assert state.attributes["pending_command"] is True
+    # A stale poll (cloud still says 65) does not undo it.
+    await nuos_entry.runtime_data.coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(WH).attributes["temperature"] == 58
+
+
 async def test_other_nuos_entities(hass: HomeAssistant, nuos_api: MagicMock, nuos_entry) -> None:
     """Sanity check of the remaining Nuos entities against the real payload shape."""
     assert hass.states.get("sensor.hot_water_water_temperature").state == "65"
