@@ -23,7 +23,6 @@
     "step": {
       "init": {
         "data": {
-          "extra_energy_features": "Dodatkowe encje związane z energią",
           "scan_interval": "Interwał skanowania strefy (sekundy)",
           "energy_scan_interval": "Interwał skanowania energii (minuty)",
           "bus_errors_scan_interval": "Interwał skanowania błędów magistrali (sekundy)"

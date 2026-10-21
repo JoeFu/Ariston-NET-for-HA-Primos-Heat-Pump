@@ -1,50 +1,238 @@
-[![CodeQL](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/codeql.yml)
+# Ariston NET for Home Assistant
+
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
-[![HACS Action](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/hacs.yml/badge.svg)](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/hacs.yml)
 [![Validate with hassfest](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/hassfest.yml/badge.svg)](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/hassfest.yml)
-# Ariston NET remotethermo integration for Home Assistant
-This integration inspired by chomupashchuk fantastic work https://github.com/chomupashchuk/ariston-remotethermo-home-assistant-v2
-But it does not use Ariston website. It uses Ariston API what I reversed engineered.
+[![HACS Action](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/hacs.yml/badge.svg)](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/hacs.yml)
+[![CodeQL](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/codeql.yml)
 
+Control and monitor **Ariston, Chaffoteaux, Elco, ATAG, NTI, HTP and Racold** boilers, heat pumps and
+water heaters that are connected to the **Ariston NET** cloud (the devices you see in the Ariston NET app).
 
-| [This integration](https://github.com/fustom/ariston-remotethermo-home-assistant-v3)  | [Chomupashchuk's v2 integration](https://github.com/chomupashchuk/ariston-remotethermo-home-assistant-v2) |
-| ------------- | ------------- |
-| Uses real API  | Uses Ariston website  |
-| Faster set/get data  | Sometimes needs minutes to set/get data |
-| Easy to setup with UI | Not so easy to setup (only with configuration.yaml) |
-| Integration & devices & entites | Only entites |
-| Proper asynchronous integration, clean code | Hard to understand and maintain (ariston.py has more than 4000 lines) |
-| Less sensors, switches, etc |  More sensors, switches, etc |
-| New code, may contains lot of bugs | Old, tested code |
+The integration talks to the same API the official app uses, through the
+[`ariston`](https://pypi.org/project/ariston/) Python package. Everything is configured from the
+Home Assistant UI; no YAML is needed.
 
-## TODO
-- Localization. Avaliable in english, catalan, italian, russian and ukranian.
-- More sensors, switches, binary sersors, selectors, services.
-- Exception handling.
-- More logs.
-- Unit tests.
-- Fun.
+> **Upgrading from 0.x?** Entity names changed (they are now "*Device name* + *Function*" and translatable),
+> but every entity keeps its unique ID, so entity IDs, history and dashboards are untouched.
+> See [What changed in 1.0](#what-changed-in-10).
 
-## Integration was tested on and works with:
-- Ariston Alteas One 24
-- Ariston Velis Evo
-- Ariston Velis Lux
-- Ariston Lydos Hybrid
+---
 
-Feel free to test something else and create new issue / pull request if something goes wrong.
+## Features
+
+- **Climate** entity per heating zone (named after the zone you set in the app) with heat / auto / cool /
+  off, current and target temperature, and the system mode (Summer, Winter, Heating only, …) as presets.
+- **Water heater** entity with target temperature, operation modes and, on Velis water heaters, on/off.
+- **Sensors**: heating circuit pressure, flow / return / outside / hot-water temperatures, Wi-Fi signal,
+  remaining heating time, available showers, energy consumption (gas and electricity, heating and hot
+  water, running totals and last-month figures), error count.
+- **Binary sensors**: flame, heat pump running, zone heat request, holiday mode, heating, anti-legionella
+  cycle, and a **Problem** sensor that turns on when the appliance reports a fault.
+- **Controls**: system mode, hybrid mode, buffer control, automatic thermoregulation, quiet mode, eco mode,
+  boost, anti-legionella, night mode with start/end time, flow temperature and offset per zone, setpoint
+  limits, energy prices.
+- **Services** to start a vacation and to write raw properties.
+- **Diagnostics download** (credentials and identifiers redacted) to attach to bug reports.
+- Automatic **re-authentication** prompt when the cloud rejects the stored password.
+
+## Supported devices
+
+| Family | Ariston `system type` | Examples | Entities |
+| --- | --- | --- | --- |
+| Boilers and hybrid / heat-pump systems with the Cube / Sensys gateway | GALEVO | Alteas One, Genus One, Clas One, Nimbus, Alteas Net | climate per zone, water heater, pressure and temperature sensors, energy, system mode, holiday |
+| BSB gateways | BSB | Elco, ATAG with BSB bus | climate per zone, water heater, outside temperature, flame |
+| Velis water heaters | VELIS | Velis Evo, Evo2, Lux, Lux2, Lydos, Lydos Hybrid, Nuos Split, Andris2 | water heater, water temperature, showers, remaining time, eco / boost / anti-legionella, night mode |
+
+Tested by the community on: Alteas One 24, Velis Evo, Velis Lux, Lydos Hybrid, Nuos Split.
+If your device is missing an entity the app shows, open an issue and attach the diagnostics file.
 
 ## Installation
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=fustom&repository=ariston-remotethermo-home-assistant-v3&category=integration) or copy ariston folder to your configuration/custom_components path.
-Use the add integration UI to set up your device.
 
-| ![Kazam_screenshot_00003](https://user-images.githubusercontent.com/6751243/146653448-ff7b6f9d-cbf1-4555-9a75-61bf68bc9d3e.png) | ![Kazam_screenshot_00004](https://user-images.githubusercontent.com/6751243/146653484-52e39d78-7c6f-44ae-888d-acf246147290.png) | ![Kazam_screenshot_00010](https://user-images.githubusercontent.com/6751243/147890590-6c4ebf38-16d9-421f-9b81-8f43298ec62f.png) |
-:-------------------------:|:-------------------------:|:-------------------------:
+### HACS (recommended)
 
-![Kazam_screenshot_00011](https://user-images.githubusercontent.com/6751243/147890611-54ae2d28-bf5a-45f8-ba92-e7a00a22615c.png)
+[![Open your Home Assistant instance and open this repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=fustom&repository=ariston-remotethermo-home-assistant-v3&category=integration)
 
-![Kazam_screenshot_00012](https://user-images.githubusercontent.com/6751243/147989103-cdac510f-e6f6-461f-a88e-b8ff0204c34f.png)
+1. HACS → Integrations → search **Ariston NET** → Download.
+2. Restart Home Assistant.
 
-| ![Kazam_screenshot_00013](https://user-images.githubusercontent.com/6751243/148247717-5211c01c-561f-4a4e-b4b5-47a680e04a68.png) | ![Kazam_screenshot_00009](https://user-images.githubusercontent.com/6751243/146657797-ed14b741-595a-48a6-9126-1acca3beb69f.png) |
-:-------------------------:|:-------------------------:
+### Manual
 
-<h1 align="center">Peace Love Freedom</h1>
+Copy `custom_components/ariston` into `<config>/custom_components/` and restart Home Assistant.
+
+Requires Home Assistant **2025.1** or newer.
+
+## Configuration
+
+1. Settings → Devices & services → **Add integration** → *Ariston NET*.
+2. Enter the e-mail and password of your Ariston NET account.
+   The *API URL* and *user agent* fields only appear when
+   [advanced mode](https://www.home-assistant.io/blog/2019/07/17/release-96/#advanced-mode) is on; leave
+   them alone unless the cloud rejects the defaults.
+3. If the account has several devices, pick one. Repeat the setup to add the others; each device is its
+   own integration entry.
+
+### Options
+
+Open the entry → **Configure** to change how often the cloud is polled:
+
+| Option | Default | What it refreshes |
+| --- | --- | --- |
+| Device state | 180 s | temperatures, modes, switches, setpoints |
+| Energy consumption | 60 min | consumption totals and last-month figures (the cloud updates hourly) |
+| Error list | 600 s | the fault list behind the Problem sensor |
+
+Ariston throttles aggressive polling; the lower bounds in the form keep you on the safe side.
+
+## Entities
+
+Entity names are `<device name> <function>`; the device name is the plant name from the Ariston app.
+On multi-zone systems climate and per-zone entities use the zone names from the app.
+
+<details>
+<summary>Boilers / heat pumps (GALEVO)</summary>
+
+| Entity | Type | Notes |
+| --- | --- | --- |
+| *Zone name* | climate | one per zone; presets = system mode |
+| *Device* | water_heater | when the system has domestic hot water |
+| Heating circuit pressure | sensor | |
+| Heating flow setpoint / flow / return temperature | sensor | |
+| Outside temperature | sensor | when an outdoor probe is installed |
+| Hot water temperature | sensor | |
+| *Zone* economy temperature | sensor (diagnostic) | per zone |
+| Signal strength | sensor (diagnostic) | gateway Wi-Fi |
+| Flame, Heat pump | binary_sensor | |
+| *Zone* heat request | binary_sensor | per zone |
+| Holiday mode | binary_sensor | attribute: end date |
+| Problem, Error count | binary_sensor / sensor | attribute: error list |
+| System mode | select | Summer / Winter / Heating only / Off … |
+| Hybrid mode, Buffer control mode | select | hybrid systems |
+| Automatic thermoregulation, Quiet mode | switch | |
+| *Zone* heating flow temperature / offset | number | per zone |
+| Heating energy, Hot water energy, Heating gas, … | sensor (energy) | with metering; usable in the Energy dashboard |
+| Gas / electricity last month | sensor | with metering |
+| Electricity cost, Gas cost, Currency, Gas type, Gas energy unit | number / select | metering settings |
+</details>
+
+<details>
+<summary>Velis water heaters</summary>
+
+| Entity | Type | Models |
+| --- | --- | --- |
+| *Device* | water_heater | all except Velis Evo (which uses the Operation mode select) |
+| Water temperature | sensor | all |
+| Requested temperature in progress | sensor (diagnostic) | all except Evo |
+| Available showers | sensor | Evo, Evo2, Lux, Lux2, Lydos, Lydos Hybrid, Andris2 |
+| Remaining heating time | sensor | Evo, Evo2, Lux, Lux2, Lydos |
+| Heating rate | sensor | Nuos Split |
+| Heating, Anti-legionella cycle | binary_sensor | |
+| Problem, Error count | binary_sensor / sensor | all |
+| Power, Eco mode, Anti-legionella, Power option | switch | |
+| Boost, Preheating | switch | Nuos Split |
+| Permanent boost, Anti-cooling, Night mode | switch | Lydos Hybrid |
+| Night mode start / end | time | Lydos Hybrid |
+| Maximum / minimum setpoint temperature, Reduced temperature | number | |
+| Requested showers | number | Evo |
+| Anti-cooling temperature | number | Lydos Hybrid |
+| Operation mode | select | Evo |
+</details>
+
+## Services
+
+| Service | Description |
+| --- | --- |
+| `ariston.create_vacation` | Put a GALEVO system on holiday until `end_date`; omit the date to cancel. |
+| `ariston.set_item_by_id` | Write a raw device / thermostat property (`item_id`, `zone`, `value`). Advanced. |
+
+Both take the Home Assistant **device** as target and are documented in Developer tools → Actions.
+
+## Examples
+
+Lower the hot water setpoint at night and raise it in the morning:
+
+```yaml
+automation:
+  - alias: Hot water night setback
+    triggers:
+      - trigger: time
+        at: "23:00:00"
+    actions:
+      - action: water_heater.set_temperature
+        target:
+          entity_id: water_heater.boiler
+        data:
+          temperature: 45
+```
+
+Notify when the appliance reports a fault:
+
+```yaml
+automation:
+  - alias: Boiler fault
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.boiler_problem
+        to: "on"
+    actions:
+      - action: notify.mobile_app_phone
+        data:
+          title: Boiler fault
+          message: "{{ state_attr('binary_sensor.boiler_problem', 'errors') }}"
+```
+
+Energy dashboard: add *Heating gas* / *Heating electricity* / *Hot water …* sensors as gas and
+electricity sources.
+
+## Troubleshooting
+
+**Download diagnostics first.** Settings → Devices & services → Ariston NET → ⋮ → *Download diagnostics*.
+The file contains the raw cloud data with your credentials, gateway id, serial number and location removed;
+attach it to issues.
+
+| Symptom | What to check |
+| --- | --- |
+| "Re-authentication required" | You changed the Ariston NET password. Click the notification and enter it. |
+| Entities unavailable | The cloud did not answer; the integration retries at the next poll. Check the Ariston NET app works. |
+| A value is stale | The cloud itself updates energy figures hourly and state every few minutes. |
+| Missing entity | The device does not report that feature. Open an issue with diagnostics. |
+
+Debug logging:
+
+```yaml
+logger:
+  logs:
+    custom_components.ariston: debug
+    ariston: debug
+```
+
+## What changed in 1.0
+
+- Entity names follow Home Assistant conventions (`has_entity_name`) and can be translated.
+  Unique IDs are unchanged, so nothing has to be renamed.
+- New entities: hot water temperature (boilers), water temperature on every Velis model, zone heat request,
+  zone economy temperature, system mode select, Problem sensor, night mode start/end (Lydos Hybrid).
+- Energy sensors are no longer hidden in the Diagnostic section and can be used in the Energy dashboard.
+- Cloud errors mark entities unavailable instead of failing silently; rejected credentials trigger
+  re-authentication.
+- Config flow: advanced fields hidden by default, device picker, proper error messages, dedicated
+  re-authentication step. Options show units and explanations.
+- Diagnostics download, services registered once with validated errors, Home Assistant 2025.1+ only.
+
+## Contributing
+
+- Run `ruff check custom_components` and `pytest` before opening a pull request
+  (`pip install -r requirements_dev.txt`).
+- New entities only need an entry in the platform's `*_TYPES` tuple plus a translation in
+  `strings.json` / `translations/en.json`; the tests check that both are present.
+- Translations: copy `translations/en.json` to your language code and translate the values.
+
+## Credits
+
+Based on the API reverse engineering by [@fustom](https://github.com/fustom) and inspired by
+[chomupashchuk's v2 integration](https://github.com/chomupashchuk/ariston-remotethermo-home-assistant-v2).
+The user-facing structure of this version takes cues from
+[0xAHA/Midea-Heat-Pump-HA](https://github.com/0xAHA/Midea-Heat-Pump-HA).
+
+## License
+
+MIT, see [LICENSE](LICENSE).

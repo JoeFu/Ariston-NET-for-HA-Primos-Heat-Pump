@@ -22,7 +22,6 @@
     "step": {
       "init": {
         "data": {
-          "extra_energy_features": "Entità Extra relative al controllo energetico",
           "scan_interval": "Intervallo scansione dati zone (in secondi)",
           "energy_scan_interval": "Intervallo scansione dati energetici (in minuti)"
         },

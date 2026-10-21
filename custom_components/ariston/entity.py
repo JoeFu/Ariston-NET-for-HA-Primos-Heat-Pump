@@ -1,89 +1,161 @@
-"""Entity object for shared properties of Ariston entities."""
+"""Base entity and shared entity-description plumbing for Ariston."""
 
 from __future__ import annotations
 
-from abc import ABC
 import logging
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass
+from typing import Any
 
-from ariston.const import WheType
-from homeassistant.helpers.entity import DeviceInfo
+from ariston.const import SystemType, WheType, ZoneAttribute
+
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import Entity, EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (
-    DOMAIN,
-    EXTRA_STATE_ATTRIBUTE,
-    EXTRA_STATE_DEVICE_METHOD,
-    AristonBaseEntityDescription,
-)
-from .coordinator import DeviceDataUpdateCoordinator
+from .const import CONFIGURATION_URL, COORDINATOR, DOMAIN, MANUFACTURER
+from .coordinator import AristonConfigEntry, AristonCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class AristonEntity(CoordinatorEntity, ABC):
-    """Generic Ariston entity (base class)."""
+@dataclass(frozen=True, kw_only=True)
+class AristonEntityDescription(EntityDescription):
+    """Describe one Ariston entity.
+
+    ``system_types`` / ``whe_types`` / ``device_features`` decide whether the entity
+    is created for a given device (see ``AristonBaseDevice.are_device_features_available``).
+    ``zone=True`` creates one entity per heating zone.
+    ``legacy_name`` is the English name versions < 1.0 used to build the unique_id;
+    keep it so existing entity registry entries (and their history) survive upgrades.
+    """
+
+    coordinator: str = COORDINATOR
+    device_features: list[str] | None = None
+    system_types: list[SystemType] | None = None
+    whe_types: list[WheType] | None = None
+    zone: bool = False
+    legacy_name: str | None = None
+    extra_attributes: dict[str, Callable[[AristonEntity], Any]] | None = None
+
+    def __post_init__(self) -> None:
+        """Default the translation key to the description key."""
+        if self.translation_key is None:
+            object.__setattr__(self, "translation_key", self.key)
+
+
+def zone_label(device: Any, zone: int) -> str:
+    """Return the user-visible name of a heating zone ("Living room" or "Zone 2")."""
+    zones = getattr(device, "zones", None)
+    if isinstance(zones, list):
+        for zone_info in zones:
+            if zone_info.get(ZoneAttribute.NUM) == zone and zone_info.get(ZoneAttribute.NAME):
+                return str(zone_info[ZoneAttribute.NAME])
+    return f"Zone {zone}"
+
+
+class AristonEntity(CoordinatorEntity[AristonCoordinator]):
+    """Common behaviour for every Ariston entity."""
+
+    _attr_has_entity_name = True
+    entity_description: AristonEntityDescription
 
     def __init__(
         self,
-        coordinator: DeviceDataUpdateCoordinator,
-        description: AristonBaseEntityDescription,
+        coordinator: AristonCoordinator,
+        description: AristonEntityDescription,
         zone: int = 0,
     ) -> None:
         """Initialize the entity."""
         super().__init__(coordinator)
-
         self.device = coordinator.device
-        self.entity_description: AristonBaseEntityDescription = description
+        self.entity_description = description
         self.zone = zone
+        self._attr_unique_id = self._build_unique_id()
+        if description.zone:
+            self._attr_translation_placeholders = {"zone": zone_label(self.device, zone)}
+
+    def _build_unique_id(self) -> str:
+        """Build a unique_id that is byte-identical to the one used before 1.0."""
+        gateway = self.device.gateway
+        legacy = self.entity_description.legacy_name
+        if legacy is not None:
+            # Pre-1.0: f"{gateway}-{name}-{zone}" where zone entities had the zone
+            # number appended to their name as well.
+            if self.zone:
+                return f"{gateway}-{legacy} {self.zone}-{self.zone}"
+            return f"{gateway}-{legacy}"
+        key = self.entity_description.key
+        if self.zone:
+            return f"{gateway}-{key}-{self.zone}"
+        return f"{gateway}-{key}"
 
     @property
     def device_info(self) -> DeviceInfo:
-        """Return device specific attributes."""
+        """Return device registry information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self.device.serial_number or "")},
-            manufacturer=DOMAIN,
+            manufacturer=MANUFACTURER,
             name=self.device.name,
-            sw_version=self.device.firmware_version,
             model=self.model,
+            serial_number=self.device.serial_number,
+            sw_version=self.device.firmware_version,
+            configuration_url=CONFIGURATION_URL,
         )
 
     @property
     def model(self) -> str:
-        """Return the model of the entity."""
+        """Return a human readable model string."""
+        system = self.device.system_type.name
+        whe = self.device.whe_type
+        if whe is WheType.Unknown:
+            return system
         if self.device.whe_model_type == 0:
-            if self.device.whe_type is WheType.Unknown:
-                return f"{self.device.system_type.name}"
-            return f"{self.device.system_type.name} {self.device.whe_type.name}"
-        return f"{self.device.system_type.name} {self.device.whe_type.name} | Model {self.device.whe_model_type}"
+            return f"{system} {whe.name}"
+        return f"{system} {whe.name} | Model {self.device.whe_model_type}"
 
     @property
-    def extra_state_attributes(self):
-        """Return the holiday end date."""
-        state_attributes = {}
-
-        if self.entity_description.extra_states is None:
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return the extra attributes declared on the description."""
+        if not self.entity_description.extra_attributes:
             return None
+        attributes = {}
+        for name, getter in self.entity_description.extra_attributes.items():
+            value = getter(self)
+            if value is not None:
+                attributes[name] = value
+        return attributes or None
 
-        for extra_state in self.entity_description.extra_states:
-            device_method = extra_state.get(EXTRA_STATE_DEVICE_METHOD)
+    def notify_state_written(self) -> None:
+        """Push the device's (optimistically updated) state to every entity.
 
-            if device_method is None:
-                continue
+        The ariston library updates its local copy of the data after a successful
+        write, so all entities of this coordinator can refresh without a cloud call.
+        """
+        self.coordinator.async_update_listeners()
 
-            state_attribute = device_method(self)
 
-            if state_attribute is None:
-                continue
-
-            state_attributes[extra_state.get(EXTRA_STATE_ATTRIBUTE)] = state_attribute
-
-        return state_attributes
-
-    @property
-    def unique_id(self):
-        """Return the unique id."""
-        return (
-            f"{self.device.gateway}-{self.name}-{self.zone}"
-            if self.zone
-            else f"{self.device.gateway}-{self.name}"
-        )
+def build_entities[D: AristonEntityDescription](
+    entry: AristonConfigEntry,
+    descriptions: Iterable[D],
+    factory: Callable[[AristonCoordinator, D, int], Entity],
+) -> list[Entity]:
+    """Instantiate the entities a device supports from a list of descriptions."""
+    entities: list[Entity] = []
+    for description in descriptions:
+        coordinator = entry.runtime_data.coordinators.get(description.coordinator)
+        if coordinator is None:
+            # e.g. the energy coordinator only exists for devices with metering.
+            continue
+        device = coordinator.device
+        if not device.are_device_features_available(
+            description.device_features,
+            description.system_types,
+            description.whe_types,
+        ):
+            continue
+        if description.zone:
+            entities.extend(factory(coordinator, description, zone) for zone in device.zone_numbers)
+        else:
+            entities.append(factory(coordinator, description, 0))
+    return entities

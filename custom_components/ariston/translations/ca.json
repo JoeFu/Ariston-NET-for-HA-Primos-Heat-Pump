@@ -23,7 +23,6 @@
     "step": {
       "init": {
         "data": {
-          "extra_energy_features": "Entitats extres relacionades amb l'energia",
           "scan_interval": "Interval d'exploració de zones (segons)",
           "energy_scan_interval": "Interval d'exploració d'energia (minuts)",
           "bus_errors_scan_interval": "Interval d'exploració d'errors de bus (segons)"
