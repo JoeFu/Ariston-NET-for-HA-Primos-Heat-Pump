@@ -147,28 +147,52 @@
         "name": "Electricity for hot water last month"
       },
       "ch_total_energy": {
-        "name": "Heating energy"
+        "name": "Heating energy total"
       },
       "dhw_total_energy": {
-        "name": "Hot water energy"
+        "name": "Hot water energy total"
       },
       "ch_gas": {
-        "name": "Heating gas"
+        "name": "Heating gas total"
       },
       "dhw_heat_pump_electricity": {
-        "name": "Hot water heat pump electricity"
+        "name": "Hot water heat pump electricity total"
       },
       "dhw_resistor_electricity": {
-        "name": "Hot water heating element electricity"
+        "name": "Hot water heating element electricity total"
       },
       "dhw_gas": {
-        "name": "Hot water gas"
+        "name": "Hot water gas total"
       },
       "ch_electricity": {
-        "name": "Heating electricity"
+        "name": "Heating electricity total"
       },
       "dhw_electricity": {
-        "name": "Hot water electricity"
+        "name": "Hot water electricity total"
+      },
+      "ch_total_energy_last_24h": {
+        "name": "Heating energy last 24 h"
+      },
+      "dhw_total_energy_last_24h": {
+        "name": "Hot water energy last 24 h"
+      },
+      "ch_gas_last_24h": {
+        "name": "Heating gas last 24 h"
+      },
+      "dhw_heat_pump_electricity_last_24h": {
+        "name": "Hot water heat pump electricity last 24 h"
+      },
+      "dhw_resistor_electricity_last_24h": {
+        "name": "Hot water heating element electricity last 24 h"
+      },
+      "dhw_gas_last_24h": {
+        "name": "Hot water gas last 24 h"
+      },
+      "ch_electricity_last_24h": {
+        "name": "Heating electricity last 24 h"
+      },
+      "dhw_electricity_last_24h": {
+        "name": "Hot water electricity last 24 h"
       }
     },
     "switch": {

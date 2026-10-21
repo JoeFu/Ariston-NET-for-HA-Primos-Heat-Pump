@@ -213,6 +213,14 @@ logger:
     ariston: debug
 ```
 
+## What changed in 1.5
+
+- Energy sensors are now **accumulated totals** (e.g. *Hot water heat pump electricity total*) built from
+  the cloud's rolling 24-hour buckets, so they only grow and work in the Energy dashboard. Previously
+  they showed the current, unfinished hour, which read as 0 most of the time. The entity IDs are
+  unchanged; the total survives restarts.
+- New *… last 24 h* sensors show the energy used over the last 24 hours.
+
 ## What changed in 1.4
 
 - Night function for the Nuos Split / Primos: *Night mode* switch, *Night mode start* / *end* times and

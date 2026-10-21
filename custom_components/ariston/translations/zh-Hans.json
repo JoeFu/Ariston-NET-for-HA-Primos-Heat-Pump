@@ -147,28 +147,52 @@
         "name": "上月热水用电"
       },
       "ch_total_energy": {
-        "name": "供暖能耗"
+        "name": "供暖累计能耗"
       },
       "dhw_total_energy": {
-        "name": "热水能耗"
+        "name": "热水累计能耗"
       },
       "ch_gas": {
-        "name": "供暖燃气"
+        "name": "供暖累计燃气"
       },
       "dhw_heat_pump_electricity": {
-        "name": "热水热泵用电"
+        "name": "热水热泵累计用电"
       },
       "dhw_resistor_electricity": {
-        "name": "热水电加热用电"
+        "name": "热水电加热累计用电"
       },
       "dhw_gas": {
-        "name": "热水燃气"
+        "name": "热水累计燃气"
       },
       "ch_electricity": {
-        "name": "供暖用电"
+        "name": "供暖累计用电"
       },
       "dhw_electricity": {
-        "name": "热水用电"
+        "name": "热水累计用电"
+      },
+      "ch_total_energy_last_24h": {
+        "name": "供暖能耗（24 小时）"
+      },
+      "dhw_total_energy_last_24h": {
+        "name": "热水能耗（24 小时）"
+      },
+      "ch_gas_last_24h": {
+        "name": "供暖燃气（24 小时）"
+      },
+      "dhw_heat_pump_electricity_last_24h": {
+        "name": "热水热泵用电（24 小时）"
+      },
+      "dhw_resistor_electricity_last_24h": {
+        "name": "热水电加热用电（24 小时）"
+      },
+      "dhw_gas_last_24h": {
+        "name": "热水燃气（24 小时）"
+      },
+      "ch_electricity_last_24h": {
+        "name": "供暖用电（24 小时）"
+      },
+      "dhw_electricity_last_24h": {
+        "name": "热水用电（24 小时）"
       }
     },
     "switch": {
