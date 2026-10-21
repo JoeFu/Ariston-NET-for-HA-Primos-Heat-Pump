@@ -61,11 +61,11 @@ class ModeLimit:
 # - Lydos Hybrid: GREEN is capped by SeMaxGreenSetpointTemperature when the cloud reports it.
 MODE_LIMITS: dict[WheType, dict[str, ModeLimit]] = {
     WheType.NuosSplit: {
-        "GREEN": ModeLimit(max_setting=SlpDeviceSettings.SLP_MAX_GREEN_TEMPERATURE, max_temp=60),
-        "IMEMORY": ModeLimit(min_temp=50),
+        "green": ModeLimit(max_setting=SlpDeviceSettings.SLP_MAX_GREEN_TEMPERATURE, max_temp=60),
+        "imemory": ModeLimit(min_temp=50),
     },
     WheType.LydosHybrid: {
-        "GREEN": ModeLimit(max_setting=SeDeviceSettings.SE_MAX_GREEN_SETPOINT_TEMPERATURE),
+        "green": ModeLimit(max_setting=SeDeviceSettings.SE_MAX_GREEN_SETPOINT_TEMPERATURE),
     },
 }
 
@@ -107,6 +107,20 @@ async def async_setup_entry(
     async_add_entities(build_entities(entry, WATER_HEATER_TYPES, AristonWaterHeater))
 
 
+def _to_state(mode_text: str | None) -> str | None:
+    """Return the Home Assistant state for a cloud mode text.
+
+    Velis modes arrive as enum names (GREEN, COMFORT, ...); Home Assistant states are
+    lowercase and only lowercase keys can be translated, so those become green, comfort, ...
+    Free-text modes from boilers ("Time based") are passed through unchanged.
+    """
+    if mode_text is None:
+        return None
+    if mode_text.replace("_", "").isalnum() and mode_text.isupper():
+        return mode_text.lower()
+    return mode_text
+
+
 def _as_float(value: Any) -> float | None:
     """Return the value as a float, or None when the cloud did not provide it."""
     if value is None or value == "":
@@ -123,6 +137,7 @@ class AristonWaterHeater(AristonEntity, WaterHeaterEntity):
     entity_description: AristonWaterHeaterEntityDescription
     _attr_name = None  # named after the device
     _attr_icon = "mdi:water-boiler"
+    _attr_translation_key = "water_heater"
 
     def __init__(
         self,
@@ -153,7 +168,7 @@ class AristonWaterHeater(AristonEntity, WaterHeaterEntity):
         """Return (min, max) setpoint for a mode: installer limits narrowed by the mode."""
         low = _as_float(self.device.water_heater_minimum_temperature)
         high = _as_float(self.device.water_heater_maximum_temperature)
-        limit = self._mode_limits.get(mode or "")
+        limit = self._mode_limits.get((_to_state(mode) or "").lower())
         if limit is None:
             return low, high
         if limit.min_temp is not None:
@@ -214,7 +229,7 @@ class AristonWaterHeater(AristonEntity, WaterHeaterEntity):
     @property
     def operation_list(self) -> list[str]:
         """Return the available operation modes, with "off" first where supported."""
-        modes = list(self.device.water_heater_mode_operation_texts or [])
+        modes = [_to_state(text) for text in self.device.water_heater_mode_operation_texts or []]
         if self._has_power_switch:
             modes.insert(0, STATE_OFF)
         return modes
@@ -224,7 +239,7 @@ class AristonWaterHeater(AristonEntity, WaterHeaterEntity):
         """Return the current operation mode, or "off" when the heater is switched off."""
         if self._is_powered_off:
             return STATE_OFF
-        return self.device.water_heater_current_mode_text
+        return _to_state(self.device.water_heater_current_mode_text)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
@@ -232,7 +247,7 @@ class AristonWaterHeater(AristonEntity, WaterHeaterEntity):
         attributes = dict(super().extra_state_attributes or {})
         if self._mode_limits:
             attributes[ATTR_TEMPERATURE_LIMITS] = {
-                mode: list(self.limits_for_mode(mode))
+                _to_state(mode): list(self.limits_for_mode(mode))
                 for mode in self.device.water_heater_mode_operation_texts or []
             }
         return attributes or None
@@ -268,6 +283,16 @@ class AristonWaterHeater(AristonEntity, WaterHeaterEntity):
         if operation_mode == STATE_OFF:
             await self.async_turn_off()
             return
+        # Map the state ("green") back to the cloud's mode text ("GREEN").
+        mode_text = next(
+            (
+                text
+                for text in self.device.water_heater_mode_operation_texts or []
+                if text.lower() == operation_mode.lower()
+            ),
+            operation_mode,
+        )
+        operation_mode = mode_text
 
         # Bring the target into the new mode's range before the appliance applies it.
         low, high = self.limits_for_mode(operation_mode)

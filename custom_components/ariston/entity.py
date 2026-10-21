@@ -18,6 +18,11 @@ from .coordinator import AristonConfigEntry, AristonCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
+# Commercial names for Velis model numbers, as reported by users of those units.
+MODEL_NAMES: dict[tuple[WheType, int], str] = {
+    (WheType.NuosSplit, 11): "Primos 205 (ARIHPWH-200)",
+}
+
 
 @dataclass(frozen=True, kw_only=True)
 class AristonEntityDescription(EntityDescription):
@@ -110,9 +115,12 @@ class AristonEntity(CoordinatorEntity[AristonCoordinator]):
         whe = self.device.whe_type
         if whe is WheType.Unknown:
             return system
-        if self.device.whe_model_type == 0:
+        model_number = self.device.whe_model_type
+        if model_number == 0:
             return f"{system} {whe.name}"
-        return f"{system} {whe.name} | Model {self.device.whe_model_type}"
+        if (name := MODEL_NAMES.get((whe, model_number))) is not None:
+            return f"{system} {whe.name} {name}"
+        return f"{system} {whe.name} | Model {model_number}"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:

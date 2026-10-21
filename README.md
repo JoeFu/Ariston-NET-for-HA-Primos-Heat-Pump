@@ -44,9 +44,9 @@ Home Assistant UI; no YAML is needed.
 | --- | --- | --- | --- |
 | Boilers and hybrid / heat-pump systems with the Cube / Sensys gateway | GALEVO | Alteas One, Genus One, Clas One, Nimbus, Alteas Net | climate per zone, water heater, pressure and temperature sensors, energy, system mode, holiday |
 | BSB gateways | BSB | Elco, ATAG with BSB bus | climate per zone, water heater, outside temperature, flame |
-| Velis water heaters | VELIS | Velis Evo, Evo2, Lux, Lux2, Lydos, Lydos Hybrid, Nuos Split, Andris2 | water heater, water temperature, showers, remaining time, eco / boost / anti-legionella, night mode |
+| Velis water heaters | VELIS | Velis Evo, Evo2, Lux, Lux2, Lydos, Lydos Hybrid, Nuos Split (sold as **Primos 205 / ARIHPWH-200** in Australia), Andris2 | water heater, water temperature, showers, remaining time, eco / boost / anti-legionella, night mode |
 
-Tested by the community on: Alteas One 24, Velis Evo, Velis Lux, Lydos Hybrid, Nuos Split.
+Tested by the community on: Alteas One 24, Velis Evo, Velis Lux, Lydos Hybrid, Nuos Split / Primos 205 (ARIHPWH-200).
 If your device is missing an entity the app shows, open an issue and attach the diagnostics file.
 
 ## Installation
@@ -209,6 +209,15 @@ logger:
     custom_components.ariston: debug
     ariston: debug
 ```
+
+## What changed in 1.2
+
+- Water heater modes are shown with readable, translated names (Green, Comfort, Boost, i-Memory;
+  绿色节能 / 舒适 / 快速加热 / i-Memory 智能 in Chinese). To make that possible the state values of Velis
+  modes are now lowercase (`green`, `comfort`, `fast`, `imemory`, `off`). Automations that compare the state or call
+  `water_heater.set_operation_mode` must use the lowercase spelling.
+- Simplified Chinese translation of the whole integration (`translations/zh-Hans.json`).
+- The Primos 205 (ARIHPWH-200) is named as such on the device page.
 
 ## What changed in 1.1
 

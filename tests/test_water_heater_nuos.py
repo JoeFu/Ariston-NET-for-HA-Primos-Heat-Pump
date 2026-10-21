@@ -130,15 +130,15 @@ async def test_off_appears_as_an_operation_mode(
     """A switched-off heater reports "off"; the mode list offers it first."""
     state = hass.states.get(WH)
     assert state.state == "off"
-    assert state.attributes["operation_list"] == ["off", "GREEN", "COMFORT", "FAST", "IMEMORY"]
+    assert state.attributes["operation_list"] == ["off", "green", "comfort", "fast", "imemory"]
     assert state.attributes["temperature"] == 65
     assert state.attributes["current_temperature"] == 65
     # Limits follow the installer settings (40-70) narrowed per mode.
     assert state.attributes["temperature_limits"] == {
-        "GREEN": [40.0, 60.0],
-        "COMFORT": [40.0, 70.0],
-        "FAST": [40.0, 70.0],
-        "IMEMORY": [50.0, 70.0],
+        "green": [40.0, 60.0],
+        "comfort": [40.0, 70.0],
+        "fast": [40.0, 70.0],
+        "imemory": [50.0, 70.0],
     }
 
 
@@ -149,13 +149,13 @@ async def test_selecting_a_mode_powers_on(
     await hass.services.async_call(
         "water_heater",
         "set_operation_mode",
-        {"entity_id": WH, "operation_mode": "COMFORT"},
+        {"entity_id": WH, "operation_mode": "comfort"},
         blocking=True,
     )
     nuos_api.async_set_velis_power.assert_awaited_once()
     assert nuos_api.async_set_velis_power.await_args.args[1:] == ("GW900", True)
     nuos_api.async_set_nuos_mode.assert_awaited_once()
-    assert hass.states.get(WH).state == "COMFORT"
+    assert hass.states.get(WH).state == "comfort"
     assert hass.states.get(WH).attributes["min_temp"] == 40
     assert hass.states.get(WH).attributes["max_temp"] == 70
 
@@ -176,13 +176,13 @@ async def test_green_mode_limits_the_setpoint(
     await hass.services.async_call(
         "water_heater",
         "set_operation_mode",
-        {"entity_id": WH, "operation_mode": "GREEN"},
+        {"entity_id": WH, "operation_mode": "green"},
         blocking=True,
     )
     comfort, reduced = nuos_api.async_set_nuos_temperature.await_args.args[1:3]
     assert (comfort, reduced) == (60, 40)
     state = hass.states.get(WH)
-    assert state.state == "GREEN"
+    assert state.state == "green"
     assert state.attributes["max_temp"] == 60
     assert state.attributes["min_temp"] == 40
 
@@ -199,7 +199,7 @@ async def test_imemory_has_a_floor(hass: HomeAssistant, nuos_api: MagicMock, nuo
     await hass.services.async_call(
         "water_heater",
         "set_operation_mode",
-        {"entity_id": WH, "operation_mode": "IMEMORY"},
+        {"entity_id": WH, "operation_mode": "imemory"},
         blocking=True,
     )
     assert hass.states.get(WH).attributes["min_temp"] == 50
@@ -230,7 +230,7 @@ async def test_green_ceiling_follows_the_cloud_setting(
         55,
         60,
     )
-    assert hass.states.get(WH).attributes["temperature_limits"]["GREEN"] == [40.0, 55.0]
+    assert hass.states.get(WH).attributes["temperature_limits"]["green"] == [40.0, 55.0]
 
 
 async def test_other_nuos_entities(hass: HomeAssistant, nuos_api: MagicMock, nuos_entry) -> None:

@@ -268,6 +268,43 @@
       "night_mode_end": {
         "name": "Night mode end"
       }
+    },
+    "water_heater": {
+      "water_heater": {
+        "state_attributes": {
+          "operation_mode": {
+            "state": {
+              "off": "Off",
+              "green": "Green",
+              "comfort": "Comfort",
+              "fast": "Boost",
+              "imemory": "i-Memory",
+              "manual": "Manual",
+              "program": "Program",
+              "night": "Night",
+              "boost": "Boost",
+              "on": "On"
+            }
+          }
+        },
+        "state": {
+          "off": "Off",
+          "green": "Green",
+          "comfort": "Comfort",
+          "fast": "Boost",
+          "imemory": "i-Memory",
+          "manual": "Manual",
+          "program": "Program",
+          "night": "Night",
+          "boost": "Boost",
+          "on": "On"
+        }
+      }
+    },
+    "climate": {
+      "thermostat": {
+        "name": "Thermostat"
+      }
     }
   },
   "services": {

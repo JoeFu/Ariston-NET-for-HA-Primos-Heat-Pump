@@ -1,0 +1,359 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "连接 Ariston NET",
+        "description": "使用 Ariston NET App 的账号登录，账号下的设备会自动发现。",
+        "data": {
+          "username": "用户名",
+          "password": "密码",
+          "api_url_setting": "API 地址",
+          "api_user_agent": "API User-Agent"
+        },
+        "data_description": {
+          "username": "Ariston NET 账号的邮箱地址。",
+          "password": "Ariston NET 账号的密码。",
+          "api_url_setting": "仅在 Ariston 更换 API 地址或你使用区域站点时修改。",
+          "api_user_agent": "仅在 Ariston 云端拒绝默认 User-Agent 时修改。"
+        }
+      },
+      "select": {
+        "title": "选择设备",
+        "description": "账号下有多个设备。每个设备是一个独立的集成条目，再次运行添加流程可添加其他设备。",
+        "data": {
+          "select_device": "设备"
+        }
+      },
+      "reauth_confirm": {
+        "title": "重新认证 {device}",
+        "description": "Ariston 拒绝了 {device} 保存的凭据，请输入当前的账号信息。",
+        "data": {
+          "username": "用户名",
+          "password": "密码",
+          "api_url_setting": "API 地址",
+          "api_user_agent": "API User-Agent"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "连接失败",
+      "invalid_auth": "认证无效",
+      "unknown": "意外错误"
+    },
+    "abort": {
+      "already_configured": "设备已配置",
+      "no_devices_found": "此 Ariston NET 账号下未找到设备",
+      "reauth_successful": "重新认证成功"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "轮询间隔",
+        "description": "Home Assistant 向 Ariston 云端请求数据的频率。间隔越短数据越新，但请求越多；过于频繁可能被 Ariston 限流。",
+        "data": {
+          "scan_interval": "设备状态",
+          "energy_scan_interval": "能耗",
+          "bus_errors_scan_interval": "故障列表"
+        },
+        "data_description": {
+          "scan_interval": "温度、模式、开关和设定值。默认 180 秒。",
+          "energy_scan_interval": "能耗总量和上月数据，云端约每小时更新一次；默认 60 分钟。",
+          "bus_errors_scan_interval": "故障传感器背后的设备故障列表。默认 600 秒。"
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "flame": {
+        "name": "火焰"
+      },
+      "heating_pump": {
+        "name": "热泵"
+      },
+      "holiday_mode": {
+        "name": "假日模式"
+      },
+      "zone_heat_request": {
+        "name": "{zone} 热请求"
+      },
+      "heating": {
+        "name": "加热中"
+      },
+      "anti_legionella_cycle": {
+        "name": "抗军团菌循环"
+      },
+      "problem": {
+        "name": "故障"
+      }
+    },
+    "sensor": {
+      "heating_circuit_pressure": {
+        "name": "供暖回路压力"
+      },
+      "ch_flow_setpoint_temperature": {
+        "name": "供暖出水设定温度"
+      },
+      "ch_flow_temperature": {
+        "name": "供暖出水温度"
+      },
+      "ch_return_temperature": {
+        "name": "供暖回水温度"
+      },
+      "outside_temperature": {
+        "name": "室外温度"
+      },
+      "hot_water_temperature": {
+        "name": "热水温度"
+      },
+      "zone_economy_temperature": {
+        "name": "{zone} 经济温度"
+      },
+      "signal_strength": {
+        "name": "信号强度"
+      },
+      "current_temperature": {
+        "name": "水温"
+      },
+      "requested_temperature_progress": {
+        "name": "正在处理的目标温度"
+      },
+      "average_showers": {
+        "name": "可用淋浴次数"
+      },
+      "remaining_time": {
+        "name": "剩余加热时间"
+      },
+      "heating_rate": {
+        "name": "加热速率"
+      },
+      "errors_count": {
+        "name": "故障数量"
+      },
+      "gas_heating_last_month": {
+        "name": "上月供暖燃气"
+      },
+      "electricity_heating_last_month": {
+        "name": "上月供暖用电"
+      },
+      "electricity_cooling_last_month": {
+        "name": "上月制冷用电"
+      },
+      "gas_water_last_month": {
+        "name": "上月热水燃气"
+      },
+      "electricity_water_last_month": {
+        "name": "上月热水用电"
+      },
+      "ch_total_energy": {
+        "name": "供暖能耗"
+      },
+      "dhw_total_energy": {
+        "name": "热水能耗"
+      },
+      "ch_gas": {
+        "name": "供暖燃气"
+      },
+      "dhw_heat_pump_electricity": {
+        "name": "热水热泵用电"
+      },
+      "dhw_resistor_electricity": {
+        "name": "热水电加热用电"
+      },
+      "dhw_gas": {
+        "name": "热水燃气"
+      },
+      "ch_electricity": {
+        "name": "供暖用电"
+      },
+      "dhw_electricity": {
+        "name": "热水用电"
+      }
+    },
+    "switch": {
+      "automatic_thermoregulation": {
+        "name": "自动温度调节"
+      },
+      "quiet_mode": {
+        "name": "静音模式"
+      },
+      "power": {
+        "name": "电源"
+      },
+      "eco_mode": {
+        "name": "节能模式"
+      },
+      "power_option": {
+        "name": "功率选项"
+      },
+      "anti_legionella": {
+        "name": "抗军团菌"
+      },
+      "preheating": {
+        "name": "预加热"
+      },
+      "boost": {
+        "name": "快速加热"
+      },
+      "permanent_boost": {
+        "name": "持续快速加热"
+      },
+      "anti_cooling": {
+        "name": "防冷却"
+      },
+      "night_mode": {
+        "name": "夜间模式"
+      }
+    },
+    "number": {
+      "electricity_cost": {
+        "name": "电价"
+      },
+      "gas_cost": {
+        "name": "燃气价"
+      },
+      "heating_flow_temperature": {
+        "name": "{zone} 供暖出水温度"
+      },
+      "heating_flow_offset": {
+        "name": "{zone} 供暖出水偏移"
+      },
+      "max_setpoint_temperature": {
+        "name": "最高设定温度"
+      },
+      "max_green_temperature": {
+        "name": "绿色模式最高温度"
+      },
+      "min_setpoint_temperature": {
+        "name": "最低设定温度"
+      },
+      "reduced_temperature": {
+        "name": "降低温度"
+      },
+      "requested_showers": {
+        "name": "需求淋浴次数"
+      },
+      "anti_cooling_temperature": {
+        "name": "防冷却温度"
+      }
+    },
+    "select": {
+      "plant_mode": {
+        "name": "系统模式"
+      },
+      "hybrid_mode": {
+        "name": "混合模式"
+      },
+      "buffer_control_mode": {
+        "name": "缓冲罐控制模式"
+      },
+      "currency": {
+        "name": "货币"
+      },
+      "gas_type": {
+        "name": "燃气类型"
+      },
+      "gas_energy_unit": {
+        "name": "燃气能量单位"
+      },
+      "operation_mode": {
+        "name": "运行模式"
+      }
+    },
+    "time": {
+      "night_mode_start": {
+        "name": "夜间模式开始"
+      },
+      "night_mode_end": {
+        "name": "夜间模式结束"
+      }
+    },
+    "climate": {
+      "thermostat": {
+        "name": "温控器"
+      }
+    },
+    "water_heater": {
+      "water_heater": {
+        "state_attributes": {
+          "operation_mode": {
+            "state": {
+              "off": "关闭",
+              "green": "绿色节能",
+              "comfort": "舒适",
+              "fast": "快速加热",
+              "imemory": "i-Memory 智能",
+              "manual": "手动",
+              "program": "定时程序",
+              "night": "夜间",
+              "boost": "快速加热",
+              "on": "开启"
+            }
+          }
+        },
+        "state": {
+          "off": "关闭",
+          "green": "绿色节能",
+          "comfort": "舒适",
+          "fast": "快速加热",
+          "imemory": "i-Memory 智能",
+          "manual": "手动",
+          "program": "定时程序",
+          "night": "夜间",
+          "boost": "快速加热",
+          "on": "开启"
+        }
+      }
+    }
+  },
+  "services": {
+    "create_vacation": {
+      "name": "Create vacation",
+      "description": "Puts the heating system into holiday mode until the given date. Without an end date the current vacation is cancelled.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The Ariston device to put on holiday."
+        },
+        "end_date": {
+          "name": "End date",
+          "description": "Last day of the vacation. Leave empty to cancel a running vacation."
+        }
+      }
+    },
+    "set_item_by_id": {
+      "name": "Set property by ID",
+      "description": "Writes a raw device or thermostat property. For advanced use; the entities cover the common settings.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The Ariston device to write to."
+        },
+        "item_id": {
+          "name": "Property",
+          "description": "Ariston property identifier, e.g. ZoneComfortTemp."
+        },
+        "zone": {
+          "name": "Zone",
+          "description": "Zone number for thermostat properties; 0 for device-wide properties."
+        },
+        "value": {
+          "name": "Value",
+          "description": "The value to write."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "device_not_found": {
+      "message": "Home Assistant 中没有 ID 为 {device_id} 的 Ariston 设备。"
+    },
+    "entry_not_loaded": {
+      "message": "{device} 的 Ariston 集成未加载，请在 设置 → 设备与服务 中查看状态。"
+    },
+    "service_not_supported": {
+      "message": "{service} 仅适用于锅炉和热泵系统；{device} 是 {system_type} 设备。"
+    }
+  }
+}
