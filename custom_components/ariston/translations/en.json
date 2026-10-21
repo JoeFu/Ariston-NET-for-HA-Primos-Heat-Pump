@@ -275,31 +275,29 @@
           "operation_mode": {
             "state": {
               "off": "Off",
-              "GREEN": "Green",
-              "COMFORT": "Comfort",
-              "FAST": "Boost",
-              "IMEMORY": "i-Memory",
-              "MANUAL": "Manual",
-              "PROGRAM": "Program",
-              "NIGHT": "Night",
-              "BOOST": "Boost",
-              "ON": "On",
-              "OFF": "Off"
+              "green": "Green",
+              "comfort": "Comfort",
+              "fast": "Boost",
+              "imemory": "i-Memory",
+              "manual": "Manual",
+              "program": "Program",
+              "night": "Night",
+              "boost": "Boost",
+              "on": "On"
             }
           }
         },
         "state": {
           "off": "Off",
-          "GREEN": "Green",
-          "COMFORT": "Comfort",
-          "FAST": "Boost",
-          "IMEMORY": "i-Memory",
-          "MANUAL": "Manual",
-          "PROGRAM": "Program",
-          "NIGHT": "Night",
-          "BOOST": "Boost",
-          "ON": "On",
-          "OFF": "Off"
+          "green": "Green",
+          "comfort": "Comfort",
+          "fast": "Boost",
+          "imemory": "i-Memory",
+          "manual": "Manual",
+          "program": "Program",
+          "night": "Night",
+          "boost": "Boost",
+          "on": "On"
         }
       }
     },

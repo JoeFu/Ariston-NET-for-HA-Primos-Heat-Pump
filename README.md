@@ -213,8 +213,9 @@ logger:
 ## What changed in 1.2
 
 - Water heater modes are shown with readable, translated names (Green, Comfort, Boost, i-Memory;
-  绿色节能 / 舒适 / 快速加热 / i-Memory 智能 in Chinese). The underlying state values (`GREEN`, `COMFORT`,
-  `FAST`, `IMEMORY`, `off`) are unchanged, so automations keep working.
+  绿色节能 / 舒适 / 快速加热 / i-Memory 智能 in Chinese). To make that possible the state values of Velis
+  modes are now lowercase (`green`, `comfort`, `fast`, `imemory`, `off`). Automations that compare the state or call
+  `water_heater.set_operation_mode` must use the lowercase spelling.
 - Simplified Chinese translation of the whole integration (`translations/zh-Hans.json`).
 - The Primos 205 (ARIHPWH-200) is named as such on the device page.
 

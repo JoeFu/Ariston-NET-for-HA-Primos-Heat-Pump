@@ -280,31 +280,29 @@
           "operation_mode": {
             "state": {
               "off": "关闭",
-              "GREEN": "绿色节能",
-              "COMFORT": "舒适",
-              "FAST": "快速加热",
-              "IMEMORY": "i-Memory 智能",
-              "MANUAL": "手动",
-              "PROGRAM": "定时程序",
-              "NIGHT": "夜间",
-              "BOOST": "快速加热",
-              "ON": "开启",
-              "OFF": "关闭"
+              "green": "绿色节能",
+              "comfort": "舒适",
+              "fast": "快速加热",
+              "imemory": "i-Memory 智能",
+              "manual": "手动",
+              "program": "定时程序",
+              "night": "夜间",
+              "boost": "快速加热",
+              "on": "开启"
             }
           }
         },
         "state": {
           "off": "关闭",
-          "GREEN": "绿色节能",
-          "COMFORT": "舒适",
-          "FAST": "快速加热",
-          "IMEMORY": "i-Memory 智能",
-          "MANUAL": "手动",
-          "PROGRAM": "定时程序",
-          "NIGHT": "夜间",
-          "BOOST": "快速加热",
-          "ON": "开启",
-          "OFF": "关闭"
+          "green": "绿色节能",
+          "comfort": "舒适",
+          "fast": "快速加热",
+          "imemory": "i-Memory 智能",
+          "manual": "手动",
+          "program": "定时程序",
+          "night": "夜间",
+          "boost": "快速加热",
+          "on": "开启"
         }
       }
     }
