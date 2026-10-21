@@ -233,6 +233,9 @@
       },
       "anti_cooling_temperature": {
         "name": "Anti-cooling temperature"
+      },
+      "max_green_temperature": {
+        "name": "Maximum green mode temperature"
       }
     },
     "select": {

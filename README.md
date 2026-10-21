@@ -22,7 +22,10 @@ Home Assistant UI; no YAML is needed.
 
 - **Climate** entity per heating zone (named after the zone you set in the app) with heat / auto / cool /
   off, current and target temperature, and the system mode (Summer, Winter, Heating only, …) as presets.
-- **Water heater** entity with target temperature, operation modes and, on Velis water heaters, on/off.
+- **Water heater** entity with target temperature and operation modes. On Velis water heaters the mode
+  list also contains **off**, and the setpoint range follows the selected mode as documented in the
+  Ariston manual (e.g. Primos / Nuos Split: GREEN up to the heat-pump ceiling of 60 °C, COMFORT and
+  BOOST up to 70 °C, i-Memory from 50 °C); out-of-range requests are clamped and logged.
 - **Sensors**: heating circuit pressure, flow / return / outside / hot-water temperatures, Wi-Fi signal,
   remaining heating time, available showers, energy consumption (gas and electricity, heating and hot
   water, running totals and last-month figures), error count.
@@ -133,6 +136,7 @@ On multi-zone systems climate and per-zone entities use the zone names from the 
 | Permanent boost, Anti-cooling, Night mode | switch | Lydos Hybrid |
 | Night mode start / end | time | Lydos Hybrid |
 | Maximum / minimum setpoint temperature, Reduced temperature | number | |
+| Maximum green mode temperature | number | Nuos Split (installer parameter "T MAX HP") |
 | Requested showers | number | Evo |
 | Anti-cooling temperature | number | Lydos Hybrid |
 | Operation mode | select | Evo |
@@ -205,6 +209,16 @@ logger:
     custom_components.ariston: debug
     ariston: debug
 ```
+
+## What changed in 1.1
+
+- Velis water heaters: **off** is an operation mode, so the mode picker can switch the heater off and
+  back on; selecting a mode while off powers the heater on.
+- Per-mode setpoint limits from the Ariston manual: GREEN is capped by the heat-pump ceiling reported
+  by the cloud (SlpMaxGreenTemperature), i-Memory has a 50 °C floor, COMFORT / BOOST use the installer
+  limits. Switching mode adjusts an out-of-range target first; the limits are exposed in the
+  `temperature_limits` attribute.
+- New number entity *Maximum green mode temperature* (Nuos Split).
 
 ## What changed in 1.0
 
