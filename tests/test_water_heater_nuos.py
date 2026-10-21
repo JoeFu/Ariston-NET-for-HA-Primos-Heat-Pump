@@ -58,6 +58,8 @@ NUOS_SETTINGS = {
     "SlpAntilegionellaOnOff": 1,
     "SlpPreHeatingOnOff": 0,
     "SlpHeatingRate": 8,
+    "SlpPermanentBoostOnOff": 0,
+    "SlpNightModeOnOff": 0,
     "SlpNightBeginAsMinutes": 5888,
     "SlpNightEndAsMinutes": 1536,
 }
@@ -263,4 +265,45 @@ async def test_other_nuos_entities(hass: HomeAssistant, nuos_api: MagicMock, nuo
     assert hass.states.get("switch.hot_water_anti_legionella").state == "on"
     assert hass.states.get("sensor.hot_water_hot_water_heat_pump_electricity").state == "0"
     assert hass.states.get("binary_sensor.hot_water_problem").state == "off"
-    assert hass.states.get("time.hot_water_night_mode_start") is None  # Lydos Hybrid only
+
+
+async def test_night_function(hass: HomeAssistant, nuos_api: MagicMock, nuos_entry) -> None:
+    """Night mode switch and window come from the Slp plant settings, clock encoded as h*256+m."""
+    assert hass.states.get("switch.hot_water_night_mode").state == "off"
+    assert hass.states.get("switch.hot_water_permanent_boost").state == "off"
+    assert hass.states.get("time.hot_water_night_mode_start").state == "23:00:00"
+    assert hass.states.get("time.hot_water_night_mode_end").state == "06:00:00"
+
+    await hass.services.async_call(
+        "time",
+        "set_value",
+        {"entity_id": "time.hot_water_night_mode_start", "time": "22:30:00"},
+        blocking=True,
+    )
+    assert nuos_api.async_set_velis_plant_setting.await_args.args[2:] == (
+        "SlpNightBeginAsMinutes",
+        22 * 256 + 30,
+        5888,
+    )
+    assert hass.states.get("time.hot_water_night_mode_start").state == "22:30:00"
+
+    await hass.services.async_call(
+        "switch", "turn_on", {"entity_id": "switch.hot_water_night_mode"}, blocking=True
+    )
+    assert nuos_api.async_set_velis_plant_setting.await_args.args[2:] == (
+        "SlpNightModeOnOff",
+        True,
+        0,
+    )
+    assert hass.states.get("switch.hot_water_night_mode").state == "on"
+
+
+async def test_device_model_is_the_commercial_name(
+    hass: HomeAssistant, nuos_api: MagicMock, nuos_entry
+) -> None:
+    """The Primos is shown by its own name; the cloud family stays available as model id."""
+    from homeassistant.helpers import device_registry as dr
+
+    device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, "SN900")})
+    assert device.model == "Primos 205 (ARIHPWH-200)"
+    assert device.model_id == "VELIS NuosSplit 11"
