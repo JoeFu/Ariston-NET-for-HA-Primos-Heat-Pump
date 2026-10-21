@@ -22,7 +22,6 @@
     "step": {
       "init": {
         "data": {
-          "extra_energy_features": "Energia entidades extra ",
           "scan_interval": "Intervalo de escaneo de zona (segundos)",
           "energy_scan_interval": "Intervalo de escaneo de Energia(minutos)",
           "bus_errors_scan_interval": "Intervalo de escaneo de errores de BUS(segundos)"

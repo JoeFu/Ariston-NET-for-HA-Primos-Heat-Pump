@@ -23,7 +23,6 @@
     "step": {
       "init": {
         "data": {
-          "extra_energy_features": "Entidades relacionadas com energia",
           "scan_interval": "Pesquisa de zonas (segundos)",
           "energy_scan_interval": "Pesquisa de energia (minutos)",
           "bus_errors_scan_interval": "Pesquisa de erros bus (segundos)"

@@ -1,27 +1,32 @@
 ---
 name: Bug report
-about: Create a report to help us improve
-title: "[BUG]"
+about: Something does not work as described in the README
+title: "[BUG] "
 labels: bug
 assignees: fustom
 
 ---
 
-First of all please check my wikipage: https://github.com/fustom/ariston-remotethermo-home-assistant-v3/wiki and the previous issues (included the closed ones) before you create a new one.
+Please check the [wiki](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/wiki) and existing
+issues (including closed ones) first.
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+What happens, and what you expected instead.
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**Diagnostics file**
+Settings → Devices & services → Ariston NET → ⋮ → *Download diagnostics*, then drag the file here.
+It contains the raw cloud data with your credentials, gateway id, serial number and location removed.
+Most device-specific bugs cannot be fixed without it.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Environment**
+ - Home Assistant version:
+ - Integration version (HACS → Ariston NET):
+ - Device type shown on the device page (e.g. `GALEVO`, `VELIS LydosHybrid`, `VELIS Evo2 | Model 4`):
 
-**Environment (please complete the following information):**
- - HA version:
- - Version of the integration:
- - Ariston device type (check the integration Device info): [e.g. VELIS Evo2 | Model 4, VELIS LydosHybrid, GALEVO]
-
-**Additional context, debug log**
-Add any other context about the problem here.
+**Debug log** (optional)
+```yaml
+logger:
+  logs:
+    custom_components.ariston: debug
+    ariston: debug
+```
