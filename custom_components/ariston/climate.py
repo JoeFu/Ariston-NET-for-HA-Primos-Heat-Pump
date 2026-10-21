@@ -201,6 +201,9 @@ class AristonThermostat(AristonEntity, ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set a new HVAC mode, adjusting the plant mode when needed."""
+        await self.async_write(lambda: self._async_write_hvac_mode(hvac_mode), "set_hvac_mode")
+
+    async def _async_write_hvac_mode(self, hvac_mode: HVACMode) -> None:
         if self.device.plant_mode_supported:
             await self._async_set_galevo_hvac_mode(hvac_mode)
         elif hvac_mode == HVACMode.OFF:
@@ -209,7 +212,6 @@ class AristonThermostat(AristonEntity, ClimateEntity):
             await self.device.async_set_zone_mode(BsbZoneMode.TIME_PROGRAM, self.zone)
         elif hvac_mode == HVACMode.HEAT:
             await self.device.async_set_zone_mode(BsbZoneMode.MANUAL, self.zone)
-        self.notify_state_written()
 
     async def _async_set_galevo_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """HVAC mode handling for systems with a plant mode (Galevo)."""
@@ -256,6 +258,11 @@ class AristonThermostat(AristonEntity, ClimateEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the plant mode."""
         _LOGGER.debug("Setting preset mode to %s for %s", preset_mode, self.entity_id)
+        await self.async_write(
+            lambda: self._async_write_preset_mode(preset_mode), "set_preset_mode"
+        )
+
+    async def _async_write_preset_mode(self, preset_mode: str) -> None:
         texts = self.device.plant_mode_opt_texts
         plant_mode = PlantMode(self.device.plant_mode_options[texts.index(preset_mode)])
         zone_modes = self.device.get_zone_mode_options(self.zone)
@@ -273,12 +280,11 @@ class AristonThermostat(AristonEntity, ClimateEntity):
         if plant_mode == PlantMode.OFF and self.device.is_zone_mode_options_contains_off(self.zone):
             await self.device.async_set_zone_mode(BsbZoneMode.OFF, self.zone)
 
-        await self.coordinator.async_request_refresh()
-
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set a new target temperature."""
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
             raise ValueError(f"Missing parameter {ATTR_TEMPERATURE}")
         _LOGGER.debug("Setting temperature to %s for %s", temperature, self.entity_id)
-        await self.device.async_set_comfort_temp(temperature, self.zone)
-        self.notify_state_written()
+        await self.async_write(
+            lambda: self.device.async_set_comfort_temp(temperature, self.zone), "set_temperature"
+        )

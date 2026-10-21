@@ -93,10 +93,12 @@ async def _async_set_item_by_id(call: ServiceCall) -> None:
     entry = _get_loaded_entry(call.hass, call.data[ATTR_DEVICE_ID])
     _require_galevo(entry, SERVICE_SET_ITEM_BY_ID)
     data = entry.runtime_data
-    await data.device.async_set_item_by_id(
-        call.data[ATTR_ITEM_ID], call.data[ATTR_VALUE], call.data[ATTR_ZONE]
+    await data.coordinator.async_execute_write(
+        lambda: data.device.async_set_item_by_id(
+            call.data[ATTR_ITEM_ID], call.data[ATTR_VALUE], call.data[ATTR_ZONE]
+        ),
+        label=f"{SERVICE_SET_ITEM_BY_ID} {call.data[ATTR_ITEM_ID]}",
     )
-    await data.coordinator.async_request_refresh()
 
 
 async def _async_create_vacation(call: ServiceCall) -> None:
@@ -105,8 +107,9 @@ async def _async_create_vacation(call: ServiceCall) -> None:
     _require_galevo(entry, SERVICE_CREATE_VACATION)
     data = entry.runtime_data
     end_date: date | None = call.data.get(ATTR_END_DATE)
-    await data.device.async_set_holiday(end_date)
-    data.coordinator.async_update_listeners()
+    await data.coordinator.async_execute_write(
+        lambda: data.device.async_set_holiday(end_date), label=SERVICE_CREATE_VACATION
+    )
 
 
 @callback

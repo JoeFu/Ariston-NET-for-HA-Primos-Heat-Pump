@@ -354,6 +354,12 @@
     },
     "service_not_supported": {
       "message": "{service} is only available for boiler and heat pump systems; {device} is a {system_type} device."
+    },
+    "write_timeout": {
+      "message": "The Ariston cloud did not answer within {timeout} seconds; the command for {entity} was not applied. Try again in a moment."
+    },
+    "write_failed": {
+      "message": "The Ariston cloud rejected the command for {entity}: {error}"
     }
   }
 }

@@ -190,10 +190,8 @@ class AristonSwitch(AristonEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
-        await self.entity_description.set_fn(self, True)
-        self.notify_state_written()
+        await self.async_write(lambda: self.entity_description.set_fn(self, True))
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
-        await self.entity_description.set_fn(self, False)
-        self.notify_state_written()
+        await self.async_write(lambda: self.entity_description.set_fn(self, False))

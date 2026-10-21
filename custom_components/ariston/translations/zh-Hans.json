@@ -354,6 +354,12 @@
     },
     "service_not_supported": {
       "message": "{service} 仅适用于锅炉和热泵系统；{device} 是 {system_type} 设备。"
+    },
+    "write_timeout": {
+      "message": "Ariston 云端在 {timeout} 秒内没有响应，{entity} 的命令未执行，请稍后重试。"
+    },
+    "write_failed": {
+      "message": "Ariston 云端拒绝了 {entity} 的命令：{error}"
     }
   }
 }

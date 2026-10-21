@@ -295,5 +295,4 @@ class AristonNumber(AristonEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         """Write a new value."""
-        await self.entity_description.set_fn(self, value)
-        self.notify_state_written()
+        await self.async_write(lambda: self.entity_description.set_fn(self, value))

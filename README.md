@@ -198,6 +198,8 @@ attach it to issues.
 | --- | --- |
 | "Re-authentication required" | You changed the Ariston NET password. Click the notification and enter it. |
 | Entities unavailable | The cloud did not answer; the integration retries at the next poll. Check the Ariston NET app works. |
+| "Ariston command not confirmed" notification | A command was accepted by the cloud but the appliance did not report the new value within 2 minutes. Check the appliance (is it powered, online in the app?) and try again. |
+| Error "did not answer within 30 seconds" | The cloud was too slow; try again. If it happens constantly, the Ariston service is degraded. |
 | A value is stale | The cloud itself updates energy figures hourly and state every few minutes. |
 | Missing entity | The device does not report that feature. Open an issue with diagnostics. |
 
@@ -209,6 +211,18 @@ logger:
     custom_components.ariston: debug
     ariston: debug
 ```
+
+## What changed in 1.3
+
+- **Commands fail loudly instead of hanging.** Every write has a 30 s timeout and cloud errors become a
+  readable error in the UI and in automation traces ("The Ariston cloud did not answer within 30 seconds…").
+- **Written values stay until the cloud confirms them.** After a command the integration polls again
+  after 10 s and 40 s, keeps showing what you set while the cloud still reports the old value (the entity
+  carries a `pending_command: true` attribute meanwhile), and if nothing is confirmed within 2 minutes it
+  reverts to the cloud's value and raises a persistent notification.
+- The Nuos Split / Primos target temperature updates immediately after setting it (previously it jumped
+  back until the next poll).
+- Polls time out after 60 s instead of blocking indefinitely.
 
 ## What changed in 1.2
 
