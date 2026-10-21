@@ -66,79 +66,208 @@
   },
   "entity": {
     "binary_sensor": {
-      "flame": { "name": "Flame" },
-      "heating_pump": { "name": "Heat pump" },
-      "holiday_mode": { "name": "Holiday mode" },
-      "zone_heat_request": { "name": "{zone} heat request" },
-      "heating": { "name": "Heating" },
-      "anti_legionella_cycle": { "name": "Anti-legionella cycle" },
-      "problem": { "name": "Problem" }
+      "flame": {
+        "name": "Flame"
+      },
+      "heating_pump": {
+        "name": "Heat pump"
+      },
+      "holiday_mode": {
+        "name": "Holiday mode"
+      },
+      "zone_heat_request": {
+        "name": "{zone} heat request"
+      },
+      "heating": {
+        "name": "Heating"
+      },
+      "anti_legionella_cycle": {
+        "name": "Anti-legionella cycle"
+      },
+      "problem": {
+        "name": "Problem"
+      }
     },
     "sensor": {
-      "heating_circuit_pressure": { "name": "Heating circuit pressure" },
-      "ch_flow_setpoint_temperature": { "name": "Heating flow setpoint temperature" },
-      "ch_flow_temperature": { "name": "Heating flow temperature" },
-      "ch_return_temperature": { "name": "Heating return temperature" },
-      "outside_temperature": { "name": "Outside temperature" },
-      "hot_water_temperature": { "name": "Hot water temperature" },
-      "zone_economy_temperature": { "name": "{zone} economy temperature" },
-      "signal_strength": { "name": "Signal strength" },
-      "current_temperature": { "name": "Water temperature" },
-      "requested_temperature_progress": { "name": "Requested temperature in progress" },
-      "average_showers": { "name": "Available showers" },
-      "remaining_time": { "name": "Remaining heating time" },
-      "heating_rate": { "name": "Heating rate" },
-      "errors_count": { "name": "Error count" },
-      "gas_heating_last_month": { "name": "Gas for heating last month" },
-      "electricity_heating_last_month": { "name": "Electricity for heating last month" },
-      "electricity_cooling_last_month": { "name": "Electricity for cooling last month" },
-      "gas_water_last_month": { "name": "Gas for hot water last month" },
-      "electricity_water_last_month": { "name": "Electricity for hot water last month" },
-      "ch_total_energy": { "name": "Heating energy" },
-      "dhw_total_energy": { "name": "Hot water energy" },
-      "ch_gas": { "name": "Heating gas" },
-      "dhw_heat_pump_electricity": { "name": "Hot water heat pump electricity" },
-      "dhw_resistor_electricity": { "name": "Hot water heating element electricity" },
-      "dhw_gas": { "name": "Hot water gas" },
-      "ch_electricity": { "name": "Heating electricity" },
-      "dhw_electricity": { "name": "Hot water electricity" }
+      "heating_circuit_pressure": {
+        "name": "Heating circuit pressure"
+      },
+      "ch_flow_setpoint_temperature": {
+        "name": "Heating flow setpoint temperature"
+      },
+      "ch_flow_temperature": {
+        "name": "Heating flow temperature"
+      },
+      "ch_return_temperature": {
+        "name": "Heating return temperature"
+      },
+      "outside_temperature": {
+        "name": "Outside temperature"
+      },
+      "hot_water_temperature": {
+        "name": "Hot water temperature"
+      },
+      "zone_economy_temperature": {
+        "name": "{zone} economy temperature"
+      },
+      "signal_strength": {
+        "name": "Signal strength"
+      },
+      "current_temperature": {
+        "name": "Water temperature"
+      },
+      "requested_temperature_progress": {
+        "name": "Requested temperature in progress"
+      },
+      "average_showers": {
+        "name": "Available showers"
+      },
+      "remaining_time": {
+        "name": "Remaining heating time"
+      },
+      "heating_rate": {
+        "name": "Heating rate"
+      },
+      "errors_count": {
+        "name": "Error count"
+      },
+      "gas_heating_last_month": {
+        "name": "Gas for heating last month"
+      },
+      "electricity_heating_last_month": {
+        "name": "Electricity for heating last month"
+      },
+      "electricity_cooling_last_month": {
+        "name": "Electricity for cooling last month"
+      },
+      "gas_water_last_month": {
+        "name": "Gas for hot water last month"
+      },
+      "electricity_water_last_month": {
+        "name": "Electricity for hot water last month"
+      },
+      "ch_total_energy": {
+        "name": "Heating energy"
+      },
+      "dhw_total_energy": {
+        "name": "Hot water energy"
+      },
+      "ch_gas": {
+        "name": "Heating gas"
+      },
+      "dhw_heat_pump_electricity": {
+        "name": "Hot water heat pump electricity"
+      },
+      "dhw_resistor_electricity": {
+        "name": "Hot water heating element electricity"
+      },
+      "dhw_gas": {
+        "name": "Hot water gas"
+      },
+      "ch_electricity": {
+        "name": "Heating electricity"
+      },
+      "dhw_electricity": {
+        "name": "Hot water electricity"
+      }
     },
     "switch": {
-      "automatic_thermoregulation": { "name": "Automatic thermoregulation" },
-      "quiet_mode": { "name": "Quiet mode" },
-      "power": { "name": "Power" },
-      "eco_mode": { "name": "Eco mode" },
-      "power_option": { "name": "Power option" },
-      "anti_legionella": { "name": "Anti-legionella" },
-      "preheating": { "name": "Preheating" },
-      "boost": { "name": "Boost" },
-      "permanent_boost": { "name": "Permanent boost" },
-      "anti_cooling": { "name": "Anti-cooling" },
-      "night_mode": { "name": "Night mode" }
+      "automatic_thermoregulation": {
+        "name": "Automatic thermoregulation"
+      },
+      "quiet_mode": {
+        "name": "Quiet mode"
+      },
+      "power": {
+        "name": "Power"
+      },
+      "eco_mode": {
+        "name": "Eco mode"
+      },
+      "power_option": {
+        "name": "Power option"
+      },
+      "anti_legionella": {
+        "name": "Anti-legionella"
+      },
+      "preheating": {
+        "name": "Preheating"
+      },
+      "boost": {
+        "name": "Boost"
+      },
+      "permanent_boost": {
+        "name": "Permanent boost"
+      },
+      "anti_cooling": {
+        "name": "Anti-cooling"
+      },
+      "night_mode": {
+        "name": "Night mode"
+      }
     },
     "number": {
-      "electricity_cost": { "name": "Electricity cost" },
-      "gas_cost": { "name": "Gas cost" },
-      "heating_flow_temperature": { "name": "{zone} heating flow temperature" },
-      "heating_flow_offset": { "name": "{zone} heating flow offset" },
-      "max_setpoint_temperature": { "name": "Maximum setpoint temperature" },
-      "min_setpoint_temperature": { "name": "Minimum setpoint temperature" },
-      "reduced_temperature": { "name": "Reduced temperature" },
-      "requested_showers": { "name": "Requested showers" },
-      "anti_cooling_temperature": { "name": "Anti-cooling temperature" }
+      "electricity_cost": {
+        "name": "Electricity cost"
+      },
+      "gas_cost": {
+        "name": "Gas cost"
+      },
+      "heating_flow_temperature": {
+        "name": "{zone} heating flow temperature"
+      },
+      "heating_flow_offset": {
+        "name": "{zone} heating flow offset"
+      },
+      "max_setpoint_temperature": {
+        "name": "Maximum setpoint temperature"
+      },
+      "min_setpoint_temperature": {
+        "name": "Minimum setpoint temperature"
+      },
+      "reduced_temperature": {
+        "name": "Reduced temperature"
+      },
+      "requested_showers": {
+        "name": "Requested showers"
+      },
+      "anti_cooling_temperature": {
+        "name": "Anti-cooling temperature"
+      },
+      "max_green_temperature": {
+        "name": "Maximum green mode temperature"
+      }
     },
     "select": {
-      "plant_mode": { "name": "System mode" },
-      "hybrid_mode": { "name": "Hybrid mode" },
-      "buffer_control_mode": { "name": "Buffer control mode" },
-      "currency": { "name": "Currency" },
-      "gas_type": { "name": "Gas type" },
-      "gas_energy_unit": { "name": "Gas energy unit" },
-      "operation_mode": { "name": "Operation mode" }
+      "plant_mode": {
+        "name": "System mode"
+      },
+      "hybrid_mode": {
+        "name": "Hybrid mode"
+      },
+      "buffer_control_mode": {
+        "name": "Buffer control mode"
+      },
+      "currency": {
+        "name": "Currency"
+      },
+      "gas_type": {
+        "name": "Gas type"
+      },
+      "gas_energy_unit": {
+        "name": "Gas energy unit"
+      },
+      "operation_mode": {
+        "name": "Operation mode"
+      }
     },
     "time": {
-      "night_mode_start": { "name": "Night mode start" },
-      "night_mode_end": { "name": "Night mode end" }
+      "night_mode_start": {
+        "name": "Night mode start"
+      },
+      "night_mode_end": {
+        "name": "Night mode end"
+      }
     }
   },
   "services": {
@@ -146,18 +275,36 @@
       "name": "Create vacation",
       "description": "Puts the heating system into holiday mode until the given date. Without an end date the current vacation is cancelled.",
       "fields": {
-        "device_id": { "name": "Device", "description": "The Ariston device to put on holiday." },
-        "end_date": { "name": "End date", "description": "Last day of the vacation. Leave empty to cancel a running vacation." }
+        "device_id": {
+          "name": "Device",
+          "description": "The Ariston device to put on holiday."
+        },
+        "end_date": {
+          "name": "End date",
+          "description": "Last day of the vacation. Leave empty to cancel a running vacation."
+        }
       }
     },
     "set_item_by_id": {
       "name": "Set property by ID",
       "description": "Writes a raw device or thermostat property. For advanced use; the entities cover the common settings.",
       "fields": {
-        "device_id": { "name": "Device", "description": "The Ariston device to write to." },
-        "item_id": { "name": "Property", "description": "Ariston property identifier, e.g. ZoneComfortTemp." },
-        "zone": { "name": "Zone", "description": "Zone number for thermostat properties; 0 for device-wide properties." },
-        "value": { "name": "Value", "description": "The value to write." }
+        "device_id": {
+          "name": "Device",
+          "description": "The Ariston device to write to."
+        },
+        "item_id": {
+          "name": "Property",
+          "description": "Ariston property identifier, e.g. ZoneComfortTemp."
+        },
+        "zone": {
+          "name": "Zone",
+          "description": "Zone number for thermostat properties; 0 for device-wide properties."
+        },
+        "value": {
+          "name": "Value",
+          "description": "The value to write."
+        }
       }
     }
   },

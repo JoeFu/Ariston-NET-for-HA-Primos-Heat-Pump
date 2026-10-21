@@ -9,6 +9,7 @@ from typing import Any
 
 from ariston.const import (
     DeviceFeatures,
+    SlpDeviceSettings,
     SystemType,
     WheType,
 )
@@ -38,6 +39,15 @@ class AristonNumberEntityDescription(NumberEntityDescription, AristonEntityDescr
     max_fn: Callable[[AristonNumber], float | None] | None = None
     step_fn: Callable[[AristonNumber], float | None] | None = None
     unit_fn: Callable[[AristonNumber], str | None] | None = None
+
+
+async def _async_set_plant_setting(entity: AristonNumber, setting: str, value: float) -> None:
+    """Write a Velis plant setting the ariston library has no dedicated setter for."""
+    device = entity.device
+    await device.api.async_set_velis_plant_setting(
+        device.plant_data, device.gateway, setting, value, device.plant_settings.get(setting)
+    )
+    device.plant_settings[setting] = value
 
 
 NUMBER_TYPES: tuple[AristonNumberEntityDescription, ...] = (
@@ -125,6 +135,25 @@ NUMBER_TYPES: tuple[AristonNumberEntityDescription, ...] = (
             WheType.LydosHybrid,
             WheType.NuosSplit,
         ],
+    ),
+    AristonNumberEntityDescription(
+        # "T MAX HP" (installer P07): the ceiling of GREEN mode, heat pump only.
+        key="max_green_temperature",
+        icon="mdi:leaf",
+        device_class=NumberDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        entity_category=EntityCategory.CONFIG,
+        native_step=1,
+        native_max_value=60,
+        min_fn=lambda entity: entity.device.water_heater_minimum_setpoint_temperature,
+        value_fn=lambda entity: entity.device.plant_settings.get(
+            SlpDeviceSettings.SLP_MAX_GREEN_TEMPERATURE
+        ),
+        set_fn=lambda entity, value: _async_set_plant_setting(
+            entity, SlpDeviceSettings.SLP_MAX_GREEN_TEMPERATURE, value
+        ),
+        system_types=[SystemType.VELIS],
+        whe_types=[WheType.NuosSplit],
     ),
     AristonNumberEntityDescription(
         key="min_setpoint_temperature",
