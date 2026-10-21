@@ -18,7 +18,8 @@ from .coordinator import AristonConfigEntry, AristonCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-# Commercial names for Velis model numbers, as reported by users of those units.
+# Commercial names for (cloud family, model number) pairs, as reported by owners. The cloud
+# only tells us the family it drives the unit as (e.g. "NuosSplit" for the Primos).
 MODEL_NAMES: dict[tuple[WheType, int], str] = {
     (WheType.NuosSplit, 11): "Primos 205 (ARIHPWH-200)",
 }
@@ -103,24 +104,28 @@ class AristonEntity(CoordinatorEntity[AristonCoordinator]):
             manufacturer=MANUFACTURER,
             name=self.device.name,
             model=self.model,
+            model_id=self.model_id,
             serial_number=self.device.serial_number,
             sw_version=self.device.firmware_version,
             configuration_url=CONFIGURATION_URL,
         )
 
     @property
-    def model(self) -> str:
-        """Return a human readable model string."""
+    def model_id(self) -> str:
+        """Return how the cloud classifies the unit (system type, family, model number)."""
         system = self.device.system_type.name
         whe = self.device.whe_type
         if whe is WheType.Unknown:
             return system
-        model_number = self.device.whe_model_type
-        if model_number == 0:
+        if self.device.whe_model_type == 0:
             return f"{system} {whe.name}"
-        if (name := MODEL_NAMES.get((whe, model_number))) is not None:
-            return f"{system} {whe.name} {name}"
-        return f"{system} {whe.name} | Model {model_number}"
+        return f"{system} {whe.name} {self.device.whe_model_type}"
+
+    @property
+    def model(self) -> str:
+        """Return the commercial model name when known, else the cloud classification."""
+        name = MODEL_NAMES.get((self.device.whe_type, self.device.whe_model_type))
+        return name if name is not None else self.model_id
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:

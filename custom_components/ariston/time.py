@@ -16,14 +16,22 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import AristonConfigEntry, AristonCoordinator
 from .entity import AristonEntity, AristonEntityDescription, build_entities
+from .plant_settings import (
+    NIGHT_BEGIN,
+    NIGHT_END,
+    async_set_plant_setting,
+    decode_clock,
+    encode_clock,
+    get_plant_setting,
+)
 
 
 @dataclass(frozen=True, kw_only=True)
 class AristonTimeEntityDescription(TimeEntityDescription, AristonEntityDescription):
-    """Describe an Ariston time entity whose cloud value is minutes after midnight."""
+    """Describe an Ariston time entity backed by a cloud clock value (hour * 256 + minute)."""
 
-    minutes_fn: Callable[[AristonTime], Any]
-    set_minutes_fn: Callable[[AristonTime, int], Coroutine[Any, Any, Any]]
+    value_fn: Callable[[AristonTime], Any]
+    set_fn: Callable[[AristonTime, int], Coroutine[Any, Any, Any]]
 
 
 TIME_TYPES: tuple[AristonTimeEntityDescription, ...] = (
@@ -31,23 +39,19 @@ TIME_TYPES: tuple[AristonTimeEntityDescription, ...] = (
         key="night_mode_start",
         icon="mdi:weather-night",
         entity_category=EntityCategory.CONFIG,
-        minutes_fn=lambda entity: entity.device.night_mode_begin_as_minutes_value,
-        set_minutes_fn=lambda entity, minutes: (
-            entity.device.async_set_night_mode_begin_as_minutes_value(minutes)
-        ),
+        value_fn=lambda entity: get_plant_setting(entity.device, NIGHT_BEGIN),
+        set_fn=lambda entity, value: async_set_plant_setting(entity.device, NIGHT_BEGIN, value),
         system_types=[SystemType.VELIS],
-        whe_types=[WheType.LydosHybrid],
+        whe_types=[WheType.LydosHybrid, WheType.NuosSplit],
     ),
     AristonTimeEntityDescription(
         key="night_mode_end",
         icon="mdi:weather-sunny",
         entity_category=EntityCategory.CONFIG,
-        minutes_fn=lambda entity: entity.device.night_mode_end_as_minutes_value,
-        set_minutes_fn=lambda entity, minutes: (
-            entity.device.async_set_night_mode_end_as_minutes_value(minutes)
-        ),
+        value_fn=lambda entity: get_plant_setting(entity.device, NIGHT_END),
+        set_fn=lambda entity, value: async_set_plant_setting(entity.device, NIGHT_END, value),
         system_types=[SystemType.VELIS],
-        whe_types=[WheType.LydosHybrid],
+        whe_types=[WheType.LydosHybrid, WheType.NuosSplit],
     ),
 )
 
@@ -62,7 +66,7 @@ async def async_setup_entry(
 
 
 class AristonTime(AristonEntity, TimeEntity):
-    """A time-of-day setting stored by the cloud as minutes after midnight."""
+    """A time-of-day setting stored by the cloud as hour * 256 + minute."""
 
     entity_description: AristonTimeEntityDescription
 
@@ -78,16 +82,9 @@ class AristonTime(AristonEntity, TimeEntity):
     @property
     def native_value(self) -> time | None:
         """Return the configured time."""
-        raw = self.entity_description.minutes_fn(self)
-        if raw is None:
-            return None
-        try:
-            minutes = int(raw) % (24 * 60)
-        except (TypeError, ValueError):
-            return None
-        return time(hour=minutes // 60, minute=minutes % 60)
+        return decode_clock(self.entity_description.value_fn(self))
 
     async def async_set_value(self, value: time) -> None:
         """Write a new time."""
-        minutes = value.hour * 60 + value.minute
-        await self.async_write(lambda: self.entity_description.set_minutes_fn(self, minutes))
+        encoded = encode_clock(value)
+        await self.async_write(lambda: self.entity_description.set_fn(self, encoded))

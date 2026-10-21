@@ -44,7 +44,7 @@ Home Assistant UI; no YAML is needed.
 | --- | --- | --- | --- |
 | Boilers and hybrid / heat-pump systems with the Cube / Sensys gateway | GALEVO | Alteas One, Genus One, Clas One, Nimbus, Alteas Net | climate per zone, water heater, pressure and temperature sensors, energy, system mode, holiday |
 | BSB gateways | BSB | Elco, ATAG with BSB bus | climate per zone, water heater, outside temperature, flame |
-| Velis water heaters | VELIS | Velis Evo, Evo2, Lux, Lux2, Lydos, Lydos Hybrid, Nuos Split (sold as **Primos 205 / ARIHPWH-200** in Australia), Andris2 | water heater, water temperature, showers, remaining time, eco / boost / anti-legionella, night mode |
+| Velis water heaters | VELIS | Velis Evo, Evo2, Lux, Lux2, Lydos, Lydos Hybrid, Nuos Split, **Primos 205 (ARIHPWH-200)** (the cloud drives it as a Nuos Split), Andris2 | water heater, water temperature, showers, remaining time, eco / boost / anti-legionella, night mode |
 
 Tested by the community on: Alteas One 24, Velis Evo, Velis Lux, Lydos Hybrid, Nuos Split / Primos 205 (ARIHPWH-200).
 If your device is missing an entity the app shows, open an issue and attach the diagnostics file.
@@ -133,10 +133,11 @@ On multi-zone systems climate and per-zone entities use the zone names from the 
 | Problem, Error count | binary_sensor / sensor | all |
 | Power, Eco mode, Anti-legionella, Power option | switch | |
 | Boost, Preheating | switch | Nuos Split |
-| Permanent boost, Anti-cooling, Night mode | switch | Lydos Hybrid |
-| Night mode start / end | time | Lydos Hybrid |
+| Permanent boost, Night mode | switch | Lydos Hybrid, Nuos Split / Primos |
+| Anti-cooling | switch | Lydos Hybrid |
+| Night mode start / end | time | Lydos Hybrid, Nuos Split / Primos |
 | Maximum / minimum setpoint temperature, Reduced temperature | number | |
-| Maximum green mode temperature | number | Nuos Split (installer parameter "T MAX HP") |
+| Maximum green mode temperature | number | Nuos Split / Primos, Lydos Hybrid (installer parameter "T MAX HP") |
 | Requested showers | number | Evo |
 | Anti-cooling temperature | number | Lydos Hybrid |
 | Operation mode | select | Evo |
@@ -211,6 +212,14 @@ logger:
     custom_components.ariston: debug
     ariston: debug
 ```
+
+## What changed in 1.4
+
+- Night function for the Nuos Split / Primos: *Night mode* switch, *Night mode start* / *end* times and
+  *Permanent boost* switch (the Advanced Settings of the Ariston portal). The night window is decoded
+  correctly (the cloud stores it as hour × 256 + minute), which also fixes the Lydos Hybrid times.
+- The device page shows the commercial model (e.g. *Primos 205 (ARIHPWH-200)*); the cloud's own
+  classification (VELIS NuosSplit 11) is kept as the model ID.
 
 ## What changed in 1.3
 

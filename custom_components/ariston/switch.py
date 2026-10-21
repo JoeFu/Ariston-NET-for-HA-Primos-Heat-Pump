@@ -21,6 +21,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import NAME
 from .coordinator import AristonConfigEntry, AristonCoordinator
 from .entity import AristonEntity, AristonEntityDescription, build_entities
+from .plant_settings import NIGHT_MODE, PERMANENT_BOOST, async_set_plant_setting, get_plant_setting
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -129,10 +130,10 @@ SWITCH_TYPES: tuple[AristonSwitchEntityDescription, ...] = (
         legacy_name=f"{NAME} permanent boost",
         icon="mdi:rocket-launch",
         entity_category=EntityCategory.CONFIG,
-        is_on_fn=lambda entity: entity.device.permanent_boost_value,
-        set_fn=lambda entity, value: entity.device.async_set_permanent_boost_value(value),
+        is_on_fn=lambda entity: get_plant_setting(entity.device, PERMANENT_BOOST),
+        set_fn=lambda entity, value: async_set_plant_setting(entity.device, PERMANENT_BOOST, value),
         system_types=[SystemType.VELIS],
-        whe_types=[WheType.LydosHybrid],
+        whe_types=[WheType.LydosHybrid, WheType.NuosSplit],
     ),
     AristonSwitchEntityDescription(
         key="anti_cooling",
@@ -149,10 +150,10 @@ SWITCH_TYPES: tuple[AristonSwitchEntityDescription, ...] = (
         legacy_name=f"{NAME} night mode",
         icon="mdi:weather-night",
         entity_category=EntityCategory.CONFIG,
-        is_on_fn=lambda entity: entity.device.night_mode_value,
-        set_fn=lambda entity, value: entity.device.async_set_night_mode_value(value),
+        is_on_fn=lambda entity: get_plant_setting(entity.device, NIGHT_MODE),
+        set_fn=lambda entity, value: async_set_plant_setting(entity.device, NIGHT_MODE, value),
         system_types=[SystemType.VELIS],
-        whe_types=[WheType.LydosHybrid],
+        whe_types=[WheType.LydosHybrid, WheType.NuosSplit],
     ),
 )
 

@@ -9,7 +9,6 @@ from typing import Any
 
 from ariston.const import (
     DeviceFeatures,
-    SlpDeviceSettings,
     SystemType,
     WheType,
 )
@@ -27,6 +26,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import ENERGY_COORDINATOR, NAME
 from .coordinator import AristonConfigEntry, AristonCoordinator
 from .entity import AristonEntity, AristonEntityDescription, build_entities
+from .plant_settings import MAX_GREEN_TEMPERATURE, async_set_plant_setting, get_plant_setting
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -39,15 +39,6 @@ class AristonNumberEntityDescription(NumberEntityDescription, AristonEntityDescr
     max_fn: Callable[[AristonNumber], float | None] | None = None
     step_fn: Callable[[AristonNumber], float | None] | None = None
     unit_fn: Callable[[AristonNumber], str | None] | None = None
-
-
-async def _async_set_plant_setting(entity: AristonNumber, setting: str, value: float) -> None:
-    """Write a Velis plant setting the ariston library has no dedicated setter for."""
-    device = entity.device
-    await device.api.async_set_velis_plant_setting(
-        device.plant_data, device.gateway, setting, value, device.plant_settings.get(setting)
-    )
-    device.plant_settings[setting] = value
 
 
 NUMBER_TYPES: tuple[AristonNumberEntityDescription, ...] = (
@@ -144,16 +135,15 @@ NUMBER_TYPES: tuple[AristonNumberEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         entity_category=EntityCategory.CONFIG,
         native_step=1,
+        native_min_value=40,
         native_max_value=60,
         min_fn=lambda entity: entity.device.water_heater_minimum_setpoint_temperature,
-        value_fn=lambda entity: entity.device.plant_settings.get(
-            SlpDeviceSettings.SLP_MAX_GREEN_TEMPERATURE
-        ),
-        set_fn=lambda entity, value: _async_set_plant_setting(
-            entity, SlpDeviceSettings.SLP_MAX_GREEN_TEMPERATURE, value
+        value_fn=lambda entity: get_plant_setting(entity.device, MAX_GREEN_TEMPERATURE),
+        set_fn=lambda entity, value: async_set_plant_setting(
+            entity.device, MAX_GREEN_TEMPERATURE, value
         ),
         system_types=[SystemType.VELIS],
-        whe_types=[WheType.NuosSplit],
+        whe_types=[WheType.NuosSplit, WheType.LydosHybrid],
     ),
     AristonNumberEntityDescription(
         key="min_setpoint_temperature",
