@@ -1,8 +1,8 @@
 {
-  "name": "Ariston NET",
+  "name": "Ariston NET for HA - Primos Heat Pump",
   "zip_release": true,
   "hide_default_branch": true,
   "render_readme": true,
   "homeassistant": "2025.1.0",
-  "filename": "ariston-remotethermo-home-assistant-v3.zip"
+  "filename": "ariston-net-ha-primos-heat-pump.zip"
 }

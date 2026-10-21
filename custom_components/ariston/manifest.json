@@ -1,14 +1,20 @@
 {
   "domain": "ariston",
-  "name": "Ariston NET",
-  "codeowners": ["@fustom"],
+  "name": "Ariston NET for HA - Primos Heat Pump",
+  "codeowners": [
+    "@JoeFu"
+  ],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/fustom/ariston-remotethermo-home-assistant-v3",
+  "documentation": "https://github.com/JoeFu/Ariston-NET-for-HA-Primos-Heat-Pump",
   "integration_type": "device",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/fustom/ariston-remotethermo-home-assistant-v3/issues",
-  "loggers": ["ariston"],
-  "requirements": ["ariston==0.19.9"],
+  "issue_tracker": "https://github.com/JoeFu/Ariston-NET-for-HA-Primos-Heat-Pump/issues",
+  "loggers": [
+    "ariston"
+  ],
+  "requirements": [
+    "ariston==0.19.9"
+  ],
   "version": "1.0.0"
 }

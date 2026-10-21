@@ -1,9 +1,9 @@
-# Ariston NET for Home Assistant
+# Ariston NET for HA - Primos Heat Pump
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
-[![Validate with hassfest](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/hassfest.yml/badge.svg)](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/hassfest.yml)
-[![HACS Action](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/hacs.yml/badge.svg)](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/hacs.yml)
-[![CodeQL](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/actions/workflows/codeql.yml)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
+[![Validate with hassfest](https://github.com/JoeFu/Ariston-NET-for-HA-Primos-Heat-Pump/actions/workflows/hassfest.yml/badge.svg)](https://github.com/JoeFu/Ariston-NET-for-HA-Primos-Heat-Pump/actions/workflows/hassfest.yml)
+[![HACS Action](https://github.com/JoeFu/Ariston-NET-for-HA-Primos-Heat-Pump/actions/workflows/hacs.yml/badge.svg)](https://github.com/JoeFu/Ariston-NET-for-HA-Primos-Heat-Pump/actions/workflows/hacs.yml)
+[![CodeQL](https://github.com/JoeFu/Ariston-NET-for-HA-Primos-Heat-Pump/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/JoeFu/Ariston-NET-for-HA-Primos-Heat-Pump/actions/workflows/codeql.yml)
 
 Control and monitor **Ariston, Chaffoteaux, Elco, ATAG, NTI, HTP and Racold** boilers, heat pumps and
 water heaters that are connected to the **Ariston NET** cloud (the devices you see in the Ariston NET app).
@@ -50,10 +50,11 @@ If your device is missing an entity the app shows, open an issue and attach the 
 
 ### HACS (recommended)
 
-[![Open your Home Assistant instance and open this repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=fustom&repository=ariston-remotethermo-home-assistant-v3&category=integration)
+[![Open your Home Assistant instance and open this repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=JoeFu&repository=Ariston-NET-for-HA-Primos-Heat-Pump&category=integration)
 
-1. HACS → Integrations → search **Ariston NET** → Download.
-2. Restart Home Assistant.
+1. HACS → ⋮ → *Custom repositories* → add `https://github.com/JoeFu/Ariston-NET-for-HA-Primos-Heat-Pump` with category *Integration*.
+2. Search **Ariston NET for HA - Primos Heat Pump** → Download.
+3. Restart Home Assistant.
 
 ### Manual
 
@@ -228,7 +229,8 @@ logger:
 
 ## Credits
 
-Based on the API reverse engineering by [@fustom](https://github.com/fustom) and inspired by
+This project started as a fork of [fustom/ariston-remotethermo-home-assistant-v3](https://github.com/fustom/ariston-remotethermo-home-assistant-v3),
+which did the API reverse engineering and maintains the `ariston` Python package. That work was inspired by
 [chomupashchuk's v2 integration](https://github.com/chomupashchuk/ariston-remotethermo-home-assistant-v2).
 The user-facing structure of this version takes cues from
 [0xAHA/Midea-Heat-Pump-HA](https://github.com/0xAHA/Midea-Heat-Pump-HA).

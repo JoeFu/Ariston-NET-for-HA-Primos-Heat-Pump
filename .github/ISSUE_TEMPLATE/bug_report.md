@@ -3,11 +3,11 @@ name: Bug report
 about: Something does not work as described in the README
 title: "[BUG] "
 labels: bug
-assignees: fustom
+assignees: JoeFu
 
 ---
 
-Please check the [wiki](https://github.com/fustom/ariston-remotethermo-home-assistant-v3/wiki) and existing
+Please check the README and existing
 issues (including closed ones) first.
 
 **Describe the bug**

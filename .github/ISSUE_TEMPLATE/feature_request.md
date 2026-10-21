@@ -3,12 +3,12 @@ name: Feature request
 about: New device or new (missing) entity
 title: "[FEATURE]"
 labels: enhancement
-assignees: fustom
+assignees: JoeFu
 
 ---
 
 **For new device check my wiki**
-https://github.com/fustom/ariston-remotethermo-home-assistant-v3/wiki/Unsupported-whe%7Csystem-type
+https://github.com/JoeFu/Ariston-NET-for-HA-Primos-Heat-Pump/Unsupported-whe%7Csystem-type
 
 **For new entity**
  - Ariston device type (check the integration Device info): [e.g. VELIS Evo2 | Model 4, VELIS LydosHybrid, GALEVO]
