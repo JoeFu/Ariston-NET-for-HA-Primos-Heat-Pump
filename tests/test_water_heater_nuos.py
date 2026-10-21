@@ -263,7 +263,13 @@ async def test_other_nuos_entities(hass: HomeAssistant, nuos_api: MagicMock, nuo
     assert hass.states.get("sensor.hot_water_heating_rate").state == "8"
     assert hass.states.get("switch.hot_water_power").state == "off"
     assert hass.states.get("switch.hot_water_anti_legionella").state == "on"
-    assert hass.states.get("sensor.hot_water_hot_water_heat_pump_electricity").state == "0"
+    assert (
+        hass.states.get("sensor.hot_water_hot_water_heat_pump_electricity_total").state == "2.221"
+    )
+    assert (
+        hass.states.get("sensor.hot_water_hot_water_heat_pump_electricity_last_24_h").state
+        == "2.221"
+    )
     assert hass.states.get("binary_sensor.hot_water_problem").state == "off"
 
 
@@ -307,3 +313,45 @@ async def test_device_model_is_the_commercial_name(
     device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, "SN900")})
     assert device.model == "Primos 205"
     assert device.model_id == "ARIHPWH-200"
+
+
+async def test_energy_total_accumulates_across_window_shifts(
+    hass: HomeAssistant, nuos_api: MagicMock, nuos_entry
+) -> None:
+    """Buckets that scroll out of the cloud's 24 h window are kept in the running total."""
+    total = "sensor.hot_water_hot_water_heat_pump_electricity_total"
+    coordinator = nuos_entry.runtime_data.coordinators["energy_coordinator"]
+    assert hass.states.get(total).state == "2.221"  # 0 + 1.138 + 1.083 + 0
+
+    def cloud(window: list[float]) -> None:
+        nuos_api.async_get_consumptions_sequences.side_effect = lambda *_: [
+            {"k": 8, "p": 1, "v": window},
+            {"k": 9, "p": 1, "v": [0, 0.538, 0.019, 0]},
+        ]
+
+    # The current hour grows: no shift, the total follows.
+    cloud([0, 1.138, 1.083, 0.4])
+    await coordinator.async_refresh()
+    assert hass.states.get(total).state == "2.621"
+
+    # One hour later the window moved by one bucket (a 0 scrolled out).
+    cloud([1.138, 1.083, 0.4, 0.5])
+    await coordinator.async_refresh()
+    assert hass.states.get(total).state == "3.121"
+
+    # Two hours later: 1.138 and 1.083 scrolled out and must stay counted.
+    cloud([0.4, 0.5, 0.2, 0])
+    await coordinator.async_refresh()
+    assert hass.states.get(total).state == "3.321"
+    assert hass.states.get(total).attributes["last_24h"] == 1.1
+
+
+def test_detect_shift() -> None:
+    """Shift detection prefers the smallest move that keeps completed buckets identical."""
+    from custom_components.ariston.sensor import detect_shift
+
+    assert detect_shift([0, 1, 2, 3], [0, 1, 2, 9]) == 0
+    assert detect_shift([0, 1, 2, 3], [1, 2, 3, 4]) == 1
+    assert detect_shift([0, 1, 2, 3], [2, 3, 7, 8]) == 2
+    assert detect_shift([0, 1, 2, 3], [5, 6, 7, 8]) == 4  # nothing recognisable: all scrolled out
+    assert detect_shift([0, 0, 0, 0], [0, 0, 0, 0]) == 0

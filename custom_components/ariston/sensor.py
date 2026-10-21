@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Any
 
 from ariston.const import (
+    ConsumptionTimeInterval,
     ConsumptionType,
     CustomDeviceFeatures,
     DeviceAttribute,
@@ -24,9 +25,10 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import UnitOfEnergy, UnitOfTemperature, UnitOfTime
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.restore_state import ExtraStoredData, RestoreEntity
 
 from .const import ATTR_ERRORS, BUS_ERRORS_COORDINATOR, ENERGY_COORDINATOR, NAME
 from .coordinator import AristonConfigEntry, AristonCoordinator
@@ -48,32 +50,66 @@ ALL_VELIS_WHE_TYPES = [
 class AristonSensorEntityDescription(SensorEntityDescription, AristonEntityDescription):
     """Describe an Ariston sensor."""
 
-    value_fn: Callable[[AristonSensor], Any]
+    value_fn: Callable[[AristonSensor], Any] | None = None
     unit_fn: Callable[[AristonSensor], str | None] | None = None
     last_reset_fn: Callable[[AristonSensor], datetime | None] | None = None
+    # For energy sensors: which cloud consumption sequence feeds the entity.
+    consumption_type: ConsumptionType | None = None
+
+
+def _sequence(
+    device: Any, consumption_type: ConsumptionType, interval: ConsumptionTimeInterval
+) -> list[float] | None:
+    """Return one consumption sequence from the cloud (None when the device lacks it)."""
+    for sequence in device.consumptions_sequences or []:
+        if sequence.get("k") == consumption_type.value and sequence.get("p") == interval.value:
+            values = sequence.get("v") or []
+            try:
+                return [float(v) for v in values]
+            except (TypeError, ValueError):
+                return None
+    return None
 
 
 def _energy_total(
     key: str,
     legacy_name: str,
     consumption_type: ConsumptionType,
-    value_fn: Callable[[AristonSensor], Any],
     *,
     system_types: list[SystemType] | None = None,
 ) -> AristonSensorEntityDescription:
-    """Describe one running energy total reported by the cloud."""
+    """Describe an accumulated energy total built from the cloud's hourly buckets."""
     return AristonSensorEntityDescription(
         key=key,
         legacy_name=legacy_name,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        suggested_display_precision=3,
         coordinator=ENERGY_COORDINATOR,
         device_features=[DeviceFeatures.HAS_METERING, consumption_type.name],
         system_types=system_types,
-        value_fn=value_fn,
-        last_reset_fn=lambda entity: entity.device.consumption_sequence_last_changed_utc,
+        consumption_type=consumption_type,
     )
+
+
+def _energy_last_24h(key: str, consumption_type: ConsumptionType) -> AristonSensorEntityDescription:
+    """Describe the energy used over the cloud's last 24 hourly buckets."""
+    return AristonSensorEntityDescription(
+        key=key,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        suggested_display_precision=3,
+        coordinator=ENERGY_COORDINATOR,
+        device_features=[DeviceFeatures.HAS_METERING, consumption_type.name],
+        value_fn=lambda entity: _last_24h(entity.device, consumption_type),
+    )
+
+
+def _last_24h(device: Any, consumption_type: ConsumptionType) -> float | None:
+    window = _sequence(device, consumption_type, ConsumptionTimeInterval.LAST_DAY)
+    return round(sum(window), 3) if window is not None else None
 
 
 def _energy_last_month(
@@ -285,55 +321,61 @@ SENSOR_TYPES: tuple[AristonSensorEntityDescription, ...] = (
         lambda entity: entity.device.electricity_consumption_for_water_last_month,
         extra_features=[CustomDeviceFeatures.HAS_DHW],
     ),
-    # --- Energy: running totals (any device with metering) ----------------------
+    # --- Energy: accumulated totals (any device with metering) -------------------
     _energy_total(
         "ch_total_energy",
         f"{NAME} central heating total energy consumption",
         ConsumptionType.CENTRAL_HEATING_TOTAL_ENERGY,
-        lambda entity: entity.device.central_heating_total_energy_consumption,
     ),
     _energy_total(
         "dhw_total_energy",
         f"{NAME} domestic hot water total energy consumption",
         ConsumptionType.DOMESTIC_HOT_WATER_TOTAL_ENERGY,
-        lambda entity: entity.device.domestic_hot_water_total_energy_consumption,
     ),
     _energy_total(
         "ch_gas",
         f"{NAME} central heating gas consumption",
         ConsumptionType.CENTRAL_HEATING_GAS,
-        lambda entity: entity.device.central_heating_gas_consumption,
     ),
     _energy_total(
         "dhw_heat_pump_electricity",
         f"{NAME} domestic hot water heating pump electricity consumption",
         ConsumptionType.DOMESTIC_HOT_WATER_HEATING_PUMP_ELECTRICITY,
-        lambda entity: entity.device.domestic_hot_water_heating_pump_electricity_consumption,
     ),
     _energy_total(
         "dhw_resistor_electricity",
         f"{NAME} domestic hot water resistor electricity consumption",
         ConsumptionType.DOMESTIC_HOT_WATER_RESISTOR_ELECTRICITY,
-        lambda entity: entity.device.domestic_hot_water_resistor_electricity_consumption,
     ),
     _energy_total(
         "dhw_gas",
         f"{NAME} domestic hot water gas consumption",
         ConsumptionType.DOMESTIC_HOT_WATER_GAS,
-        lambda entity: entity.device.domestic_hot_water_gas_consumption,
     ),
     _energy_total(
         "ch_electricity",
         f"{NAME} central heating electricity consumption",
         ConsumptionType.CENTRAL_HEATING_ELECTRICITY,
-        lambda entity: entity.device.central_heating_electricity_consumption,
     ),
     _energy_total(
         "dhw_electricity",
         f"{NAME} domestic hot water electricity consumption",
         ConsumptionType.DOMESTIC_HOT_WATER_ELECTRICITY,
-        lambda entity: entity.device.domestic_hot_water_electricity_consumption,
     ),
+    # --- Energy: last 24 hours ---------------------------------------------------
+    _energy_last_24h("ch_total_energy_last_24h", ConsumptionType.CENTRAL_HEATING_TOTAL_ENERGY),
+    _energy_last_24h("dhw_total_energy_last_24h", ConsumptionType.DOMESTIC_HOT_WATER_TOTAL_ENERGY),
+    _energy_last_24h("ch_gas_last_24h", ConsumptionType.CENTRAL_HEATING_GAS),
+    _energy_last_24h(
+        "dhw_heat_pump_electricity_last_24h",
+        ConsumptionType.DOMESTIC_HOT_WATER_HEATING_PUMP_ELECTRICITY,
+    ),
+    _energy_last_24h(
+        "dhw_resistor_electricity_last_24h", ConsumptionType.DOMESTIC_HOT_WATER_RESISTOR_ELECTRICITY
+    ),
+    _energy_last_24h("dhw_gas_last_24h", ConsumptionType.DOMESTIC_HOT_WATER_GAS),
+    _energy_last_24h("ch_electricity_last_24h", ConsumptionType.CENTRAL_HEATING_ELECTRICITY),
+    _energy_last_24h("dhw_electricity_last_24h", ConsumptionType.DOMESTIC_HOT_WATER_ELECTRICITY),
 )
 
 
@@ -343,7 +385,15 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up Ariston sensors."""
-    async_add_entities(build_entities(entry, SENSOR_TYPES, AristonSensor))
+    async_add_entities(build_entities(entry, SENSOR_TYPES, _make_sensor))
+
+
+def _make_sensor(
+    coordinator: AristonCoordinator, description: AristonSensorEntityDescription, zone: int
+) -> AristonSensor:
+    if description.consumption_type is not None:
+        return AristonEnergyTotalSensor(coordinator, description, zone)
+    return AristonSensor(coordinator, description, zone)
 
 
 class AristonSensor(AristonEntity, SensorEntity):
@@ -363,6 +413,8 @@ class AristonSensor(AristonEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         """Return the sensor value."""
+        if self.entity_description.value_fn is None:
+            return None
         return self.entity_description.value_fn(self)
 
     @property
@@ -378,3 +430,95 @@ class AristonSensor(AristonEntity, SensorEntity):
         if self.entity_description.last_reset_fn is not None:
             return self.entity_description.last_reset_fn(self)
         return None
+
+
+def detect_shift(old: list[float], new: list[float]) -> int:
+    """Return how many buckets the rolling window moved between two polls.
+
+    The cloud's "last day" sequence is a window of 24 hourly buckets ending with the
+    current, still growing hour. Buckets that were already complete keep their exact
+    values, so the smallest shift ``k`` with ``old[k:-1] == new[:len-1-k]`` is the move.
+    """
+    size = len(old)
+    if size != len(new):
+        return size
+    # k == size - 1 would compare empty slices and prove nothing, so it counts as "all out".
+    for k in range(size - 1):
+        if old[k : size - 1] == new[: size - 1 - k]:
+            return k
+    return size
+
+
+@dataclass
+class EnergyTotalData(ExtraStoredData):
+    """What the accumulated total needs to survive a restart."""
+
+    committed: float
+    window: list[float] | None
+
+    def as_dict(self) -> dict[str, Any]:
+        """Serialize."""
+        return {"committed": self.committed, "window": self.window}
+
+
+class AristonEnergyTotalSensor(AristonSensor, RestoreEntity):
+    """Energy accumulated from the cloud's rolling 24-hour window.
+
+    The cloud only reports hourly buckets for the last day. The sensor keeps the sum of
+    every bucket that has scrolled out of that window ("committed") and adds the buckets
+    still in it, which gives a total that only grows (apart from the cloud correcting a
+    bucket), usable in the Energy dashboard.
+    """
+
+    _committed: float = 0.0
+    _window: list[float] | None = None
+    _total: float | None = None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the committed energy and the last seen window."""
+        await super().async_added_to_hass()
+        if (stored := await self.async_get_last_extra_data()) is not None:
+            data = stored.as_dict()
+            try:
+                self._committed = float(data.get("committed", 0.0))
+            except (TypeError, ValueError):
+                self._committed = 0.0
+            window = data.get("window")
+            self._window = [float(v) for v in window] if isinstance(window, list) else None
+        self._refresh_total()
+
+    @property
+    def extra_restore_state_data(self) -> EnergyTotalData:
+        """Persist the committed energy and the last seen window."""
+        return EnergyTotalData(self._committed, self._window)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._refresh_total()
+        super()._handle_coordinator_update()
+
+    def _refresh_total(self) -> None:
+        assert self.entity_description.consumption_type is not None
+        window = _sequence(
+            self.device, self.entity_description.consumption_type, ConsumptionTimeInterval.LAST_DAY
+        )
+        if window is None:
+            return
+        if self._window is not None:
+            shift = detect_shift(self._window, window)
+            self._committed += sum(self._window[:shift])
+        self._window = list(window)
+        self._total = round(self._committed + sum(window), 3)
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the accumulated energy."""
+        return self._total
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Expose the last 24 hours for convenience."""
+        attributes = dict(super().extra_state_attributes or {})
+        if self._window is not None:
+            attributes["last_24h"] = round(sum(self._window), 3)
+        return attributes or None
