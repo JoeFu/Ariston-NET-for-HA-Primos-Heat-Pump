@@ -218,7 +218,7 @@ logger:
 - Night function for the Nuos Split / Primos: *Night mode* switch, *Night mode start* / *end* times and
   *Permanent boost* switch (the Advanced Settings of the Ariston portal). The night window is decoded
   correctly (the cloud stores it as hour × 256 + minute), which also fixes the Lydos Hybrid times.
-- The device page shows the commercial model (e.g. *Primos 205 (ARIHPWH-200)*). The cloud's own
+- The device page shows the product name and code (*Primos 205*, *ARIHPWH-200*). The cloud's own
   classification is only visible in the diagnostics download.
 
 ## What changed in 1.3
