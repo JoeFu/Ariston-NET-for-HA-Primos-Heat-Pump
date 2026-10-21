@@ -20,8 +20,9 @@ _LOGGER = logging.getLogger(__name__)
 
 # Commercial names for (cloud family, model number) pairs, as reported by owners. The cloud
 # only tells us the family it drives the unit as (e.g. "NuosSplit" for the Primos).
-MODEL_NAMES: dict[tuple[WheType, int], str] = {
-    (WheType.NuosSplit, 11): "Primos 205 (ARIHPWH-200)",
+# Values are (product name, product code); HA shows them as "name (code)".
+MODEL_NAMES: dict[tuple[WheType, int], tuple[str, str]] = {
+    (WheType.NuosSplit, 11): ("Primos 205", "ARIHPWH-200"),
 }
 
 
@@ -104,6 +105,7 @@ class AristonEntity(CoordinatorEntity[AristonCoordinator]):
             manufacturer=MANUFACTURER,
             name=self.device.name,
             model=self.model,
+            model_id=self.model_id,
             serial_number=self.device.serial_number,
             sw_version=self.device.firmware_version,
             configuration_url=CONFIGURATION_URL,
@@ -125,9 +127,15 @@ class AristonEntity(CoordinatorEntity[AristonCoordinator]):
 
     @property
     def model(self) -> str:
-        """Return the commercial model name when known, else the cloud classification."""
-        name = MODEL_NAMES.get((self.device.whe_type, self.device.whe_model_type))
-        return name if name is not None else self.cloud_classification
+        """Return the product name when known, else the cloud classification."""
+        known = MODEL_NAMES.get((self.device.whe_type, self.device.whe_model_type))
+        return known[0] if known is not None else self.cloud_classification
+
+    @property
+    def model_id(self) -> str | None:
+        """Return the product code when known (shown next to the name by HA)."""
+        known = MODEL_NAMES.get((self.device.whe_type, self.device.whe_model_type))
+        return known[1] if known is not None else None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:

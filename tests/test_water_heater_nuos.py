@@ -301,9 +301,9 @@ async def test_night_function(hass: HomeAssistant, nuos_api: MagicMock, nuos_ent
 async def test_device_model_is_the_commercial_name(
     hass: HomeAssistant, nuos_api: MagicMock, nuos_entry
 ) -> None:
-    """The Primos is shown by its own name only."""
+    """The Primos is shown as product name plus product code."""
     from homeassistant.helpers import device_registry as dr
 
     device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, "SN900")})
-    assert device.model == "Primos 205 (ARIHPWH-200)"
-    assert device.model_id is None
+    assert device.model == "Primos 205"
+    assert device.model_id == "ARIHPWH-200"
