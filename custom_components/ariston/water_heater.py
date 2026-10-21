@@ -123,6 +123,7 @@ class AristonWaterHeater(AristonEntity, WaterHeaterEntity):
     entity_description: AristonWaterHeaterEntityDescription
     _attr_name = None  # named after the device
     _attr_icon = "mdi:water-boiler"
+    _attr_translation_key = "water_heater"
 
     def __init__(
         self,
