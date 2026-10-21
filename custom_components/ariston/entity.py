@@ -104,15 +104,17 @@ class AristonEntity(CoordinatorEntity[AristonCoordinator]):
             manufacturer=MANUFACTURER,
             name=self.device.name,
             model=self.model,
-            model_id=self.model_id,
             serial_number=self.device.serial_number,
             sw_version=self.device.firmware_version,
             configuration_url=CONFIGURATION_URL,
         )
 
     @property
-    def model_id(self) -> str:
-        """Return how the cloud classifies the unit (system type, family, model number)."""
+    def cloud_classification(self) -> str:
+        """Return how the cloud drives the unit (system type, family, model number).
+
+        Only used as a fallback model name and in diagnostics; it is not the product name.
+        """
         system = self.device.system_type.name
         whe = self.device.whe_type
         if whe is WheType.Unknown:
@@ -125,7 +127,7 @@ class AristonEntity(CoordinatorEntity[AristonCoordinator]):
     def model(self) -> str:
         """Return the commercial model name when known, else the cloud classification."""
         name = MODEL_NAMES.get((self.device.whe_type, self.device.whe_model_type))
-        return name if name is not None else self.model_id
+        return name if name is not None else self.cloud_classification
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
