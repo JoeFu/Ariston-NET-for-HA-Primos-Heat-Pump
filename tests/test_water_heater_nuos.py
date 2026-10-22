@@ -383,3 +383,14 @@ async def test_energy_outage_at_setup_then_recovery(
     assert (
         hass.states.get("sensor.hot_water_hot_water_heat_pump_electricity_total").state == "2.221"
     )
+
+
+async def test_last_24h_energy_sensor_has_no_state_class(
+    hass: HomeAssistant, nuos_api: MagicMock, nuos_entry
+) -> None:
+    """HA rejects state_class measurement for energy sensors; the rolling window has none."""
+    last24 = hass.states.get("sensor.hot_water_hot_water_heat_pump_electricity_last_24_h")
+    assert last24.attributes["device_class"] == "energy"
+    assert "state_class" not in last24.attributes
+    total = hass.states.get("sensor.hot_water_hot_water_heat_pump_electricity_total")
+    assert total.attributes["state_class"] == "total"

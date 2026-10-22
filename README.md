@@ -213,6 +213,12 @@ logger:
     ariston: debug
 ```
 
+## What changed in 1.5.2
+
+- The "... last 24 h" energy sensors no longer declare a state class; Home Assistant rejected
+  `measurement` for energy sensors and logged a warning on every start. Their long-term statistics stop
+  being recorded; use the "... total" sensors for history and the Energy dashboard.
+
 ## What changed in 1.5.1
 
 - The integration no longer fails to start when the Ariston cloud's fault-list or energy endpoint
