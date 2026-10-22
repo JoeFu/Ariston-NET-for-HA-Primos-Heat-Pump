@@ -94,11 +94,15 @@ def _energy_total(
 
 
 def _energy_last_24h(key: str, consumption_type: ConsumptionType) -> AristonSensorEntityDescription:
-    """Describe the energy used over the cloud's last 24 hourly buckets."""
+    """Describe the energy used over the cloud's last 24 hourly buckets.
+
+    A rolling window is neither a measurement nor a running total, so it has no state
+    class (HA rejects ``measurement`` for energy sensors). Use the ``... total`` sensors
+    for statistics and the Energy dashboard.
+    """
     return AristonSensorEntityDescription(
         key=key,
         device_class=SensorDeviceClass.ENERGY,
-        state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         suggested_display_precision=3,
         coordinator=ENERGY_COORDINATOR,
