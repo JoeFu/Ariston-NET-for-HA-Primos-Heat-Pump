@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from ariston.ariston_api import ConnectionException
@@ -227,3 +227,49 @@ async def test_unload(
     await hass.async_block_till_done()
     assert config_entry.state is ConfigEntryState.NOT_LOADED
     assert hass.states.get("climate.boiler").state == "unavailable"
+
+
+async def test_fault_list_outage_does_not_block_setup(
+    hass: HomeAssistant, fake_api: MagicMock, config_entry: MockConfigEntry
+) -> None:
+    """The cloud answering the fault list with HTTP 500 leaves the device usable."""
+    fake_api.async_get_bus_errors = AsyncMock(side_effect=ConnectionException(500))
+    await _setup(hass, config_entry)
+
+    assert hass.states.get("climate.boiler").state == "heat"
+    assert hass.states.get("water_heater.boiler").attributes["temperature"] == 48
+    assert hass.states.get("binary_sensor.boiler_problem").state == "unavailable"
+    assert hass.states.get("sensor.boiler_error_count").state == "unavailable"
+
+    # The endpoint recovers: the fault sensors come back on the next poll.
+    fake_api.async_get_bus_errors = AsyncMock(return_value=[])
+    await config_entry.runtime_data.coordinators["bus_errors_coordinator"].async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get("binary_sensor.boiler_problem").state == STATE_OFF
+    assert hass.states.get("sensor.boiler_error_count").state == "0"
+
+
+async def test_device_state_is_still_required(
+    hass: HomeAssistant, fake_api: MagicMock, config_entry: MockConfigEntry
+) -> None:
+    """Without the device state nothing works, so setup is retried."""
+    fake_api.async_get_properties.side_effect = ConnectionException(500)
+    config_entry.add_to_hass(hass)
+    assert not await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert config_entry.state is ConfigEntryState.SETUP_RETRY
+
+
+async def test_auth_error_on_fault_list_still_starts_reauth(
+    hass: HomeAssistant, fake_api: MagicMock, config_entry: MockConfigEntry
+) -> None:
+    """Rejected credentials are not swallowed by the optional-data handling."""
+    fake_api.async_get_bus_errors = AsyncMock(side_effect=ConnectionException("Invalid token"))
+    config_entry.add_to_hass(hass)
+    assert not await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert config_entry.state is ConfigEntryState.SETUP_ERROR
+    assert any(
+        flow["context"].get("source") == "reauth"
+        for flow in hass.config_entries.flow.async_progress()
+    )

@@ -213,6 +213,13 @@ logger:
     ariston: debug
 ```
 
+## What changed in 1.5.1
+
+- The integration no longer fails to start when the Ariston cloud's fault-list or energy endpoint
+  is down (it answers HTTP 500 for hours at times). Only the device state is required; the Problem /
+  Error count and energy sensors start unavailable and recover on the next successful poll. When the
+  energy data arrives late, the integration reloads once so the energy sensors are created.
+
 ## What changed in 1.5
 
 - Energy sensors are now **accumulated totals** (e.g. *Hot water heat pump electricity total*) built from

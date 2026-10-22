@@ -355,3 +355,31 @@ def test_detect_shift() -> None:
     assert detect_shift([0, 1, 2, 3], [2, 3, 7, 8]) == 2
     assert detect_shift([0, 1, 2, 3], [5, 6, 7, 8]) == 4  # nothing recognisable: all scrolled out
     assert detect_shift([0, 0, 0, 0], [0, 0, 0, 0]) == 0
+
+
+async def test_energy_outage_at_setup_then_recovery(
+    hass: HomeAssistant, nuos_api: MagicMock
+) -> None:
+    """Energy failing at startup keeps the heater usable; recovery reloads to add energy sensors."""
+    from ariston.ariston_api import ConnectionException
+
+    nuos_api.async_get_consumptions_sequences.side_effect = ConnectionException(500)
+    entry = MockConfigEntry(
+        domain=DOMAIN, title="Hot Water", unique_id="GW900", data={**ENTRY_DATA, CONF_DEVICE: NUOS}
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.LOADED
+    assert hass.states.get(WH).state == "off"
+    assert hass.states.get("sensor.hot_water_hot_water_heat_pump_electricity_total") is None
+
+    nuos_api.async_get_consumptions_sequences.side_effect = lambda *_: copy.deepcopy(
+        NUOS_CONSUMPTIONS
+    )
+    await entry.runtime_data.coordinators["energy_coordinator"].async_refresh()
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.LOADED
+    assert (
+        hass.states.get("sensor.hot_water_hot_water_heat_pump_electricity_total").state == "2.221"
+    )

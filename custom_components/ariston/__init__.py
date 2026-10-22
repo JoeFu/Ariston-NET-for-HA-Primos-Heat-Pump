@@ -9,7 +9,7 @@ from ariston.ariston_api import ConnectionException
 from ariston.const import ARISTON_API_URL, ARISTON_USER_AGENT
 
 from homeassistant.const import CONF_DEVICE, CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
-from homeassistant.core import HomeAssistant
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
@@ -101,14 +101,64 @@ async def async_setup_entry(hass: HomeAssistant, entry: AristonConfigEntry) -> b
             device.async_update_energy,
         )
 
-    for coordinator in coordinators.values():
-        await coordinator.async_config_entry_first_refresh()
+    # The device state is required: without it nothing works, so let HA retry setup.
+    await coordinators[COORDINATOR].async_config_entry_first_refresh()
+
+    # The fault list and energy history are nice to have. The Ariston cloud sometimes
+    # answers these endpoints with HTTP 500 for hours; that must not take the water
+    # heater offline. Their entities start unavailable and recover on the next poll.
+    failed_optional: list[str] = []
+    for kind in (BUS_ERRORS_COORDINATOR, ENERGY_COORDINATOR):
+        if (coordinator := coordinators.get(kind)) is None:
+            continue
+        try:
+            await coordinator.async_config_entry_first_refresh()
+        except ConfigEntryNotReady as err:
+            failed_optional.append(kind)
+            _LOGGER.warning(
+                "%s: could not load %s during setup, continuing without it for now: %s",
+                device_name,
+                kind,
+                err,
+            )
 
     entry.runtime_data = AristonData(device=device, coordinators=coordinators)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
+
+    if ENERGY_COORDINATOR in failed_optional:
+        _reload_when_energy_recovers(hass, entry, coordinators[ENERGY_COORDINATOR])
     return True
+
+
+@callback
+def _reload_when_energy_recovers(
+    hass: HomeAssistant, entry: AristonConfigEntry, coordinator: AristonCoordinator
+) -> None:
+    """Reload once the energy data arrives, so the energy sensors get created.
+
+    Which energy sensors exist depends on the consumption types the cloud reports, which
+    are only known after a successful energy poll.
+    """
+    remove: CALLBACK_TYPE | None = None
+
+    @callback
+    def _stop() -> None:
+        nonlocal remove
+        if remove is not None:
+            remove()
+            remove = None
+
+    @callback
+    def _check() -> None:
+        if coordinator.last_update_success:
+            _stop()
+            _LOGGER.info("%s: energy data is available now, reloading", entry.title)
+            hass.config_entries.async_schedule_reload(entry.entry_id)
+
+    remove = coordinator.async_add_listener(_check)
+    entry.async_on_unload(_stop)
 
 
 async def _async_update_listener(hass: HomeAssistant, entry: AristonConfigEntry) -> None:
